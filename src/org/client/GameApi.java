@@ -94,11 +94,13 @@ public final class GameApi {
     private final List<Operation> lastMove;
     private final int lastMovePlayerId;
 
-    public VerifyMove(int yourPlayerId, List<Map<String, Object>> playersInfo,
+    public VerifyMove(
+    	int yourPlayerId, 
+    	List<Map<String, Object>> playersInfo,
         Map<String, Object> state,
         Map<String, Object> lastState,
         List<Operation> lastMove,
-        int lastMovePlayerId) {
+      int lastMovePlayerId) {
       super(yourPlayerId, playersInfo, state);
       this.lastState = checkHasJsonSupportedType(lastState);
       this.lastMove = lastMove;
@@ -148,7 +150,7 @@ public final class GameApi {
     public List<Object> getFieldsNameAndValue() {
       return Arrays.<Object>asList("playerIdToScore", playerIdToScore);
     }
-
+    
     public EndGame(int winnerPlayerId) {
       playerIdToScore = new HashMap<>();
       playerIdToScore.put(String.valueOf(winnerPlayerId), 1);
@@ -472,6 +474,8 @@ public final class GameApi {
       return messages;
     }
 
+    //把fieldName和fieldValue put into a message Map
+    //如果fieldValue是list的话，要先listToMessage，再put
     public Map<String, Object> toMessage() {
       Map<String, Object> message = new HashMap<>();
       message.put("type", getClassName());
@@ -488,9 +492,10 @@ public final class GameApi {
       }
       return message;
     }
-
+    
     @SuppressWarnings("unchecked")
     private static List<Operation> messageToOperationList(Object operationMessagesObj) {
+      //??? ??? ???
       List<?> operationMessages = (List<?>) operationMessagesObj;
       List<Operation> operations = new ArrayList<>();
       for (Object operationMessage : operationMessages) {
