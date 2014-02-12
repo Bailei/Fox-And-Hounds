@@ -26,12 +26,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 
-
 @RunWith(JUnit4.class)
 public class GameLogicTest {
 	/** The object under test. */
 	GameLogic gameLogic = new GameLogic();
 
+/*
 	private void assertMoveOk(VerifyMove verifyMove) {
 		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
 			assertEquals(new VerifyMoveDone(), verifyDone);
@@ -41,6 +41,7 @@ public class GameLogicTest {
 		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
 			assertEquals(new VerifyMoveDone(verifyMove.getLastMovePlayerId(), "Hacker found"), verifyDone);
 	}
+*/
 	
 /*
 	private void assertMoveOk(VerifyMove verifyMove){
@@ -73,10 +74,12 @@ public class GameLogicTest {
 			List<Operation> lastMove){
 		return new VerifyMove(fId, playersInfo, emptyState, lastState, lastMove, lastMovePlayerId);
 	}
-	
+
+/*
 	private List<Operation> getInitialOperation(){
 		return gameLogic.getInitialMove(fId, sId);
 	}
+*/
 	
 	private final ImmutableMap<String, Object> initialState = ImmutableMap.<String, Object>of(
 		TURN, F,
@@ -92,7 +95,7 @@ public class GameLogicTest {
 		S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22),
 		EATEN, ImmutableList.of());
 	
-	private final ImmutableMap<String, Object> turnOfF = ImmutableMap.<String, Object>of(
+	private final ImmutableMap<String, Object> turnOfFoxInOneState = ImmutableMap.<String, Object>of(
 		TURN, F,
 		BOARD, ImmutableList.of(
 				-1, -1,  0,  0,  0, -1, -1,
@@ -106,7 +109,7 @@ public class GameLogicTest {
 		S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22),
 		EATEN, ImmutableList.of());
 
-	private final ImmutableMap<String, Object> turnOfS = ImmutableMap.<String, Object>of(
+	private final ImmutableMap<String, Object> turnOfSheepInOneState = ImmutableMap.<String, Object>of(
 		TURN, S,
 		BOARD, ImmutableList.of(
 				-1, -1,  0,  0,  0, -1, -1,
@@ -137,7 +140,7 @@ public class GameLogicTest {
 	
 	//fox2 eat sheep6 (lastState: turnofF)
 	private final ImmutableList<Operation> foxMoveToEatSheep = ImmutableList.<Operation>of(
-		new Set(TURN, F),
+		new Set(TURN, S),
 		new Set(BOARD, ImmutableList.of(
 				-1, -1,  0,  0,  0, -1, -1,
 				-1, -1,  0,  1,  0, -1, -1,
@@ -150,9 +153,39 @@ public class GameLogicTest {
 		new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
 		new Set(EATEN, ImmutableList.of(6)));
 
+	//fox2 eat sheep6 but sheep6 still alive (lastState: turnofF)
+	private final ImmutableList<Operation> foxMoveToEatSheepButSheepAlive = ImmutableList.<Operation>of(
+		new Set(TURN, S),
+		new Set(BOARD, ImmutableList.of(
+				-1, -1,  0,  0,  0, -1, -1,
+				-1, -1,  0,  1,  0, -1, -1,
+				 0,  0,  5,  0,  0,  0,  0,
+				 3,  4, 12,  6,  7,  8,  9,
+				10, 11,  2, 13,  14, 15, 16,
+				-1, -1, 17, 18, 19, -1, -1,
+				-1, -1, 20, 21, 22, -1, -1)),		
+		new Set(F, ImmutableList.of(1, 2)),
+		new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+		new Set(EATEN, ImmutableList.of()));
+	
+	//fox2 eat sheep7 by wrong move (lastState: turnofF)
+	private final ImmutableList<Operation> foxMoveToEatSheepByWrongMove = ImmutableList.<Operation>of(
+		new Set(TURN, S),
+		new Set(BOARD, ImmutableList.of(
+				-1, -1,  0,  0,  0, -1, -1,
+				-1, -1,  0,  1,  0, -1, -1,
+				 0,  0,  5,  0,  0,  0,  0,
+				 3,  4, 12,  6,  0,  8,  9,
+				10, 11,  0, 13,  2, 15, 16,
+				-1, -1, 17, 18, 19, -1, -1,
+				-1, -1, 20, 21, 22, -1, -1)),		
+		new Set(F, ImmutableList.of(1, 2)),
+		new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+		new Set(EATEN, ImmutableList.of(7)));
+
 	//fox1 move forward  (lastState: turnofF)
 	private final ImmutableList<Operation> fNormalForwardMove = ImmutableList.<Operation>of(
-			new Set(TURN, F),
+			new Set(TURN, S),
 			new Set(BOARD, ImmutableList.of(
 					-1, -1,  0,  0,  0, -1, -1,
 					-1, -1,  0,  0,  0, -1, -1,
@@ -166,8 +199,8 @@ public class GameLogicTest {
 			new Set(EATEN, ImmutableList.of()));
 
 	//fox1 move backward  (lastState: turnofF)
-	private final ImmutableList<Operation> fNormaBackwardMove = ImmutableList.<Operation>of(
-			new Set(TURN, F),
+	private final ImmutableList<Operation> fNormalBackwardMove = ImmutableList.<Operation>of(
+			new Set(TURN, S),
 			new Set(BOARD, ImmutableList.of(
 					-1, -1,  0,  1,  0, -1, -1,
 					-1, -1,  0,  0,  0, -1, -1,
@@ -181,8 +214,8 @@ public class GameLogicTest {
 			new Set(EATEN, ImmutableList.of()));
 	
 	//fox1 move diagonal (lastState: turnofF)
-	private final ImmutableList<Operation> fNormaBackwardMove = ImmutableList.<Operation>of(
-			new Set(TURN, F),
+	private final ImmutableList<Operation> fNormalDiagonalMove = ImmutableList.<Operation>of(
+			new Set(TURN, S),
 			new Set(BOARD, ImmutableList.of(
 					-1, -1,  1,  0,  0, -1, -1,
 					-1, -1,  0,  0,  0, -1, -1,
@@ -197,7 +230,7 @@ public class GameLogicTest {
 	
 	//sheep6 move forward (lastState: turnofS)
 	private final ImmutableList<Operation> sNormalForwardMove = ImmutableList.<Operation>of(
-			new Set(TURN, S),
+			new Set(TURN, F),
 			new Set(BOARD, ImmutableList.of(
 					-1, -1,  0,  0,  0, -1, -1,
 					-1, -1,  0,  1,  0, -1, -1,
@@ -212,7 +245,7 @@ public class GameLogicTest {
 	
 	//sheep6 move sideways (lastState: turnofS)
 	private final ImmutableList<Operation> sNormalSidesWayMove = ImmutableList.<Operation>of(
-			new Set(TURN, S),
+			new Set(TURN, F),
 			new Set(BOARD, ImmutableList.of(
 					-1, -1,  0,  0,  0, -1, -1,
 					-1, -1,  0,  1,  0, -1, -1,
@@ -224,98 +257,254 @@ public class GameLogicTest {
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
 			new Set(EATEN, ImmutableList.of()));
+
+	//sheep6 move forward two squares(lastState: turnofS)
+	private final ImmutableList<Operation> sWrongTwoSquaresMove = ImmutableList.<Operation>of(
+			new Set(TURN, F),
+			new Set(BOARD, ImmutableList.of(
+					-1, -1,  5,  0,  0, -1, -1,
+					-1, -1,  0,  1,  0, -1, -1,
+					 0,  0,  0,  0,  2,  0,  0,
+					 3,  4, 12,  6,  7,  8,  9,
+					10, 11,  0, 13, 14, 15, 16,
+					-1, -1, 17, 18, 19, -1, -1,
+					-1, -1, 20, 21, 22, -1, -1)),		
+			new Set(F, ImmutableList.of(1, 2)),
+			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+			new Set(EATEN, ImmutableList.of()));
+	
+	//sheep6 move backwards(lastState: turnofS)
+	private final ImmutableList<Operation> sWrongBackwardsMove = ImmutableList.<Operation>of(
+			new Set(TURN, F),
+			new Set(BOARD, ImmutableList.of(
+					-1, -1,  0,  0,  0, -1, -1,
+					-1, -1,  0,  1,  0, -1, -1,
+					 0,  0,  5,  0,  2,  0,  0,
+					 3,  4,  0,  6,  7,  8,  9,
+					10, 11,  12, 13, 14, 15, 16,
+					-1, -1, 17, 18, 19, -1, -1,
+					-1, -1, 20, 21, 22, -1, -1)),		
+			new Set(F, ImmutableList.of(1, 2)),
+			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+			new Set(EATEN, ImmutableList.of()));
+	
+	//fox2 move out of the board
+	private final ImmutableList<Operation> fMoveOutOfBoard = ImmutableList.<Operation>of(
+			new Set(TURN, F),
+			new Set(BOARD, ImmutableList.of(
+					-1, -1,  0,  0,  0, -1, -1,
+					-1, -1,  0,  1,  0,  2, -1,
+					 0,  0,  5,  0,  0,  0,  0,
+					 3,  4, 12,  6,  7,  8,  9,
+					10, 11,  0, 13, 14, 15, 16,
+					-1, -1, 17, 18, 19, -1, -1,
+					-1, -1, 20, 21, 22, -1, -1)),
+			new Set(F, ImmutableList.of(1, 2)),
+			new Set(F, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+			new Set(EATEN, ImmutableList.of())
+			);	
+	
+	//sheep17 move out of the board
+	private final ImmutableList<Operation> sMoveOutOfBoard = ImmutableList.<Operation>of(
+			new Set(TURN, F),
+			new Set(BOARD, ImmutableList.of(
+					-1, -1,  0,  0,  0, -1, -1,
+					-1, -1,  0,  1,  0, -1, -1,
+					 0,  0,  5,  0,  0,  0,  0,
+					 3,  4, 12,  6,  7,  8,  9,
+					10, 11,  0, 13, 14, 15, 16,
+					-1, 17,  0, 18, 19, -1, -1,
+					-1, -1, 20, 21, 22, -1, -1)),
+			new Set(F, ImmutableList.of(1, 2)),
+			new Set(F, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+			new Set(EATEN, ImmutableList.of())
+			);
 	
 	@Test
 	public void testInitialMove() {
 		VerifyMove verifyMove = move(fId, emptyState, initialMoveByF);
-		
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(0, verifyDone.getHackerPlayerId());
 	}
 
 	@Test
 	public void testInitialMoveByWrongPlayer(){
-		assertHacker(move(sId, emptyState, getInitialOperation()));
+		VerifyMove verifyMove = move(sId, emptyState, initialMoveByF);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+//		assertHacker(move(sId, emptyState, getInitialOperation()));
 	}
 	
 	@Test
 	public void testInitialMoveFromNonEmptyState(){
-		assertHacker(move(fId, nonEmptyState, getInitialOperation()));
-	}
-	
-	@Test
-	public void testNormalMoveByWhite(){
-//		assertHacker(move(fId, turnOfF, MoveOfF));
-	}
-	
-	@Test
-	public void testNormalMoveByBlack(){
-//		assertHacker(move(fId, turnOfS, MoveOfS));
+		VerifyMove verifyMove = move(fId, nonEmptyState, initialMoveByF);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+//		assertHacker(move(fId, nonEmptyState, getInitialOperation()));
 	}
 	
 	@Test
 	public void testInitialMoveWithExtroOperation(){
-		List<Operation> initialOperations = getInitialOperation();
-
+		VerifyMove verifyMove = move(fId, emptyState, fNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
 	}
-	
+
+/*
 	@Test
 	public void testPieceToString(){
 		
 	}
+*/
 	
 	@Test
-	public void testNormalMoveByFox(){
-		
+	public void testNormalForwardMoveByFox(){
+		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, fNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(0, verifyDone.getHackerPlayerId());		
 	}
 	
 	@Test
-	public void testWrongMovebyFox(){
-		
+	public void testNormalBackwardMoveByFox(){
+		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, fNormalBackwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(0, verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
+	public void testNormalDiagonalMoveByFox(){
+		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, fNormalDiagonalMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(0, verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
+	public void testFoxMoveToEatSheep(){
+		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, foxMoveToEatSheep);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(0, verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
+	public void testFoxEatSheepButSheepNotBeEatten(){
+		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, foxMoveToEatSheepButSheepAlive);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
+	public void testWrongMovebyFoxToEatSheep(){
+		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, foxMoveToEatSheepByWrongMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
 	}
 
 	@Test
-	public void testNormalMoveBySheep(){
-		
+	public void testNormalForwardMoveBySheep(){
+		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(0, verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
+	public void testNormalSidesWayMoveBySheep(){
+		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sNormalSidesWayMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(0, verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
+	public void testWrongTwoSquaresForwardMove(){
+		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sWrongTwoSquaresMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());			
 	}
 	
 	@Test
 	public void testWrongBackwardsMoveBySheep(){
+		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sWrongBackwardsMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
+	public void testMoveWithWrongPiece1(){
+		VerifyMove verifyMove = move(fId, turnOfFoxInOneState, fNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+	}
+	
+	@Test
+	public void testMoveWithWrongPiece2(){
+		VerifyMove verifyMove = move(fId, turnOfFoxInOneState, sNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+	}
+	
+	@Test
+	public void testMoveWithWrongPiece3(){
+		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, fNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+	}
+	
+	@Test
+	public void testMoveWithWrongPiece4(){
+		VerifyMove verifyMove = move(sId, turnOfSheepInOneState, sNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+	}
+	
+	@Test
+	public void testMoveWithWrongPiece5(){
+		VerifyMove verifyMove = move(sId, turnOfSheepInOneState, fNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+	}
+	
+	@Test
+	public void testMoveWithWrongPiece6(){
+		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, sNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+	}
+	
+	@Test
+	public void testFoxMoveOutofBoard(){
+		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, fMoveOutOfBoard);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
+	public void testSheepMoveOutofBoard(){
+		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sMoveOutOfBoard);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
+	public void testFoxHasToMoveIfCanEat(){
 		
 	}
 	
 	@Test
-	public void testWrongForwardsMoveBySheep(){
+	public void testTwoFoxMoveAtOneTime(){
 		
 	}
 	
 	@Test
-	public void testNormalEatByFox(){
+	public void testTwoSheepMoveAtOneTime(){
 		
 	}
 	
 	@Test
-	public void testWrongEatByFox(){
+	public void test(){
 		
 	}
 	
 	@Test
-	public void testWrongEatBySheep(){
+	public void testEndGame(){	
 		
 	}
-	
-	@Test
-	public void testMoveWithWrongPiece(){
-		
-	}
-	
-	@Test
-	public void testMoveOutofBoard(){
-		
-	}
-	
-	@Test
-	public void testEndGame(){
-		
-	}
-	
-
 }
