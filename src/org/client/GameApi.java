@@ -20,12 +20,21 @@ public final class GameApi {
     protected final int yourPlayerId;
     protected final List<Map<String, Object>> playersInfo;
     protected final Map<String, Object> state;
+    private final Map<String, Object> lastState;
+    private final List<Operation> lastMove;
+    private final int lastMovePlayerId;
 
     public UpdateUI(int yourPlayerId, List<Map<String, Object>> playersInfo,
-        Map<String, Object> state) {
+        Map<String, Object> state,
+        Map<String, Object> lastState,
+        List<Operation> lastMove,
+        int lastMovePlayerId) {
       this.yourPlayerId = yourPlayerId;
       this.playersInfo = checkHasJsonSupportedType(playersInfo);
       this.state = checkHasJsonSupportedType(state);
+      this.lastState = checkHasJsonSupportedType(lastState);
+      this.lastMove = lastMove;
+      this.lastMovePlayerId = checkHasJsonSupportedType(lastMovePlayerId);
     }
 
     @Override
@@ -36,7 +45,8 @@ public final class GameApi {
     @Override
     public List<Object> getFieldsNameAndValue() {
       return Arrays.<Object>asList(
-          "yourPlayerId", yourPlayerId, "playersInfo", playersInfo, "state", state);
+          "yourPlayerId", yourPlayerId, "playersInfo", playersInfo, "state", state,
+          "lastState", lastState, "lastMove", lastMove, "lastMovePlayerId", lastMovePlayerId);
     }
 
     public int getYourPlayerId() {
@@ -87,37 +97,6 @@ public final class GameApi {
     public String getPlayerProfilePicUrl(int playerId) {
       return String.valueOf(getPlayerInfo(playerId).get(PLAYER_PROFILE_PIC_URL));
     }
-  }
-
-  public static class VerifyMove extends UpdateUI {
-    private final Map<String, Object> lastState;
-    private final List<Operation> lastMove;
-    private final int lastMovePlayerId;
-
-    public VerifyMove(
-    	int yourPlayerId, 
-    	List<Map<String, Object>> playersInfo,
-        Map<String, Object> state,
-        Map<String, Object> lastState,
-        List<Operation> lastMove,
-      int lastMovePlayerId) {
-      super(yourPlayerId, playersInfo, state);
-      this.lastState = checkHasJsonSupportedType(lastState);
-      this.lastMove = lastMove;
-      this.lastMovePlayerId = checkHasJsonSupportedType(lastMovePlayerId);
-    }
-
-    @Override
-    public String getClassName() {
-      return "VerifyMove";
-    }
-
-    @Override
-    public List<Object> getFieldsNameAndValue() {
-      return Arrays.<Object>asList(
-          "yourPlayerId", yourPlayerId, "playersInfo", playersInfo, "state", state,
-          "lastState", lastState, "lastMove", lastMove, "lastMovePlayerId", lastMovePlayerId);
-    }
 
     public Map<String, Object> getLastState() {
       return lastState;
@@ -130,6 +109,24 @@ public final class GameApi {
     public int getLastMovePlayerId() {
       return lastMovePlayerId;
     }
+  }
+
+  public static class VerifyMove extends UpdateUI {
+
+    public VerifyMove(int yourPlayerId, List<Map<String, Object>> playersInfo,
+        Map<String, Object> state,
+        Map<String, Object> lastState,
+        List<Operation> lastMove,
+        int lastMovePlayerId) {
+      super(yourPlayerId, playersInfo, state, lastState, lastMove, lastMovePlayerId);
+    }
+
+    @Override
+    public String getClassName() {
+      return "VerifyMove";
+    }
+
+
   }
 
   public abstract static class Operation extends HasEquality { }
@@ -150,7 +147,7 @@ public final class GameApi {
     public List<Object> getFieldsNameAndValue() {
       return Arrays.<Object>asList("playerIdToScore", playerIdToScore);
     }
-    
+
     public EndGame(int winnerPlayerId) {
       playerIdToScore = new HashMap<>();
       playerIdToScore.put(String.valueOf(winnerPlayerId), 1);
@@ -474,8 +471,6 @@ public final class GameApi {
       return messages;
     }
 
-    //把fieldName和fieldValue put into a message Map
-    //如果fieldValue是list的话，要先listToMessage，再put
     public Map<String, Object> toMessage() {
       Map<String, Object> message = new HashMap<>();
       message.put("type", getClassName());
@@ -492,10 +487,9 @@ public final class GameApi {
       }
       return message;
     }
-    
+
     @SuppressWarnings("unchecked")
     private static List<Operation> messageToOperationList(Object operationMessagesObj) {
-      //??? ??? ???
       List<?> operationMessages = (List<?>) operationMessagesObj;
       List<Operation> operations = new ArrayList<>();
       for (Object operationMessage : operationMessages) {
@@ -512,7 +506,10 @@ public final class GameApi {
           return new UpdateUI(
               (Integer) message.get("yourPlayerId"),
               (List<Map<String, Object>>) message.get("playersInfo"),
-              (Map<String, Object>) message.get("state"));
+              (Map<String, Object>) message.get("state"),
+              (Map<String, Object>) message.get("lastState"),
+              messageToOperationList(message.get("lastMove")),
+              (Integer) message.get("lastMovePlayerId"));
 
         case "VerifyMove":
           return new VerifyMove(
