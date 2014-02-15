@@ -53,15 +53,18 @@ public class GameLogicTest {
 		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
 	}
 */
-	private static final String PLAYER_ID = "playerId";
+	private static final String PLAYER_ID = "PLAYER_ID";
 	
 	private final int fId = 1;
 	private final int sId = 2;
 	private final String TURN = "TURN";
 	private static final String F = "F"; // FOX hand
 	private static final String S = "S"; // SHEEP hand
-	private static final String BOARD = "board"; 
+	private static final String BOARD = "BOARD"; 
 	private static final String EATEN = "EATEN";
+	private static final String ARRIVAL = "ARRIVAL";
+	private static final String IS_FoxMove = "IS_FoxMove";
+	private static final String YES = "yes";
 	private final Map<String, Object> wInfo = ImmutableMap.<String, Object>of(PLAYER_ID, fId);
 	private final Map<String, Object> bInfo = ImmutableMap.<String, Object>of(PLAYER_ID, sId);
 	private final List<Map<String, Object>> playersInfo = ImmutableList.of(wInfo, bInfo);
@@ -72,7 +75,7 @@ public class GameLogicTest {
 			int lastMovePlayerId, 
 			Map<String, Object> lastState, 
 			List<Operation> lastMove){
-		return new VerifyMove(fId, playersInfo, emptyState, lastState, lastMove, lastMovePlayerId);
+		return new VerifyMove(playersInfo, emptyState, lastState, lastMove, lastMovePlayerId, ImmutableMap.<Integer, Integer>of());
 	}
 
 /*
@@ -81,47 +84,53 @@ public class GameLogicTest {
 	}
 */
 	
-	private final ImmutableMap<String, Object> initialState = ImmutableMap.<String, Object>of(
-		TURN, F,
-		BOARD, ImmutableList.of(
+	private final ImmutableMap<String, Object> initialState = ImmutableMap.<String, Object>builder()
+		.put(TURN, F)
+		.put(BOARD, ImmutableList.of(
 				-1, -1,  1,  0,  2, -1, -1,
 				-1, -1,  0,  0,  0, -1, -1,
 				 0,  0,  0,  0,  0,  0,  0,
 				 3,  4,  5,  6,  7,  8,  9,
 				10, 11, 12, 13, 14, 15, 16,
 				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1),
-		F, ImmutableList.of(1, 2),
-		S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22),
-		EATEN, ImmutableList.of());
+				-1, -1, 20, 21, 22, -1, -1))
+		.put(F, ImmutableList.of(1, 2))
+		.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+		.put(EATEN, ImmutableList.of())
+		.put(ARRIVAL, ImmutableList.of())
+		.build();
 	
-	private final ImmutableMap<String, Object> turnOfFoxInOneState = ImmutableMap.<String, Object>of(
-		TURN, F,
-		BOARD, ImmutableList.of(
+	private final ImmutableMap<String, Object> turnOfFoxInOneState = ImmutableMap.<String, Object>builder()
+		.put(TURN, F)
+		.put(BOARD, ImmutableList.of(
 				-1, -1,  0,  0,  0, -1, -1,
 				-1, -1,  0,  1,  0, -1, -1,
 				 0,  0,  5,  0,  2,  0,  0,
 				 3,  4, 12,  6,  7,  8,  9,
 				10, 11,  0, 13, 14, 15, 16,
 				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1),
-		F, ImmutableList.of(1, 2),
-		S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22),
-		EATEN, ImmutableList.of());
+				-1, -1, 20, 21, 22, -1, -1))
+		.put(F, ImmutableList.of(1, 2))
+		.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+		.put(EATEN, ImmutableList.of())
+		.put(ARRIVAL, ImmutableList.of(5))
+		.build();
 
-	private final ImmutableMap<String, Object> turnOfSheepInOneState = ImmutableMap.<String, Object>of(
-		TURN, S,
-		BOARD, ImmutableList.of(
+	private final ImmutableMap<String, Object> turnOfSheepInOneState = ImmutableMap.<String, Object>builder()
+		.put(TURN, S)
+		.put(BOARD, ImmutableList.of(
 				-1, -1,  0,  0,  0, -1, -1,
 				-1, -1,  0,  1,  0, -1, -1,
 				 0,  0,  5,  0,  2,  0,  0,
 				 3,  4, 12,  6,  7,  8,  9,
 				10, 11,  0, 13, 14, 15, 16,
 				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1),		
-		F, ImmutableList.of(1, 2),
-		S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22),
-		EATEN, ImmutableList.of());
+				-1, -1, 20, 21, 22, -1, -1))
+		.put(F, ImmutableList.of(1, 2))
+		.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+		.put(EATEN, ImmutableList.of())
+		.put(ARRIVAL, ImmutableList.of(5))
+		.build();
 	
 	private final ImmutableList<Operation> initialMoveByF = ImmutableList.<Operation>of(
 			new Set(TURN, F),
@@ -135,8 +144,8 @@ public class GameLogicTest {
 				-1, -1, 20, 21, 22, -1, -1)),
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of())
-			);
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of()));
 	
 	//fox2 eat sheep6 (lastState: turnofF)
 	private final ImmutableList<Operation> foxMoveToEatSheep = ImmutableList.<Operation>of(
@@ -151,7 +160,8 @@ public class GameLogicTest {
 				-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of(6)));
+			new Set(EATEN, ImmutableList.of(6)),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 
 	//fox2 eat sheep6 but sheep6 still alive (lastState: turnofF)
 	private final ImmutableList<Operation> foxMoveToEatSheepButSheepAlive = ImmutableList.<Operation>of(
@@ -166,7 +176,8 @@ public class GameLogicTest {
 				-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 	
 	//fox2 eat sheep7 by wrong move (lastState: turnofF)
 	private final ImmutableList<Operation> foxMoveToEatSheepByWrongMove = ImmutableList.<Operation>of(
@@ -181,7 +192,8 @@ public class GameLogicTest {
 				-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of(7)));
+			new Set(EATEN, ImmutableList.of(7)),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 
 	//fox1 move forward  (lastState: turnofF)
 	private final ImmutableList<Operation> fNormalForwardMove = ImmutableList.<Operation>of(
@@ -196,7 +208,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 	
 	//Both fox1 and fox2 move forward at one time  (lastState: turnofF)
 	private final ImmutableList<Operation> twoFoxForwardMoveAtOneTime = ImmutableList.<Operation>of(
@@ -211,7 +224,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 
 	//fox1 move backward  (lastState: turnofF)
 	private final ImmutableList<Operation> fNormalBackwardMove = ImmutableList.<Operation>of(
@@ -226,7 +240,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 	
 	//fox1 move diagonal (lastState: turnofF)
 	private final ImmutableList<Operation> fNormalDiagonalMove = ImmutableList.<Operation>of(
@@ -241,7 +256,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 	
 	//sheep6 move forward (lastState: turnofS)
 	private final ImmutableList<Operation> sNormalForwardMove = ImmutableList.<Operation>of(
@@ -256,7 +272,24 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5, 6)));
+	
+	//sheep6 move in to the paddock, but Arrival does not change (lastState: turnofS)
+	private final ImmutableList<Operation> sArriveButArrivalNotChange = ImmutableList.<Operation>of(
+			new Set(TURN, F),
+			new Set(BOARD, ImmutableList.of(
+					-1, -1,  0,  0,  0, -1, -1,
+					-1, -1,  0,  1,  0, -1, -1,
+					 0,  0,  5,  6,  2,  0,  0,
+					 3,  4, 12,  0,  7,  8,  9,
+					10, 11,  0, 13, 14, 15, 16,
+					-1, -1, 17, 18, 19, -1, -1,
+					-1, -1, 20, 21, 22, -1, -1)),		
+			new Set(F, ImmutableList.of(1, 2)),
+			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 	
 	//Both sheep6  and sheep8 move at one time (lastState: turnofS)
 	private final ImmutableList<Operation> twoSheepMoveAtOneTime = ImmutableList.<Operation>of(
@@ -271,7 +304,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5, 6)));
 	
 	//sheep6 move sideways (lastState: turnofS)
 	private final ImmutableList<Operation> sNormalSidesWayMove = ImmutableList.<Operation>of(
@@ -286,7 +320,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of()));
 
 	//sheep6 move forward two squares(lastState: turnofS)
 	private final ImmutableList<Operation> sWrongTwoSquaresMove = ImmutableList.<Operation>of(
@@ -301,7 +336,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 	
 	//sheep6 move backwards(lastState: turnofS)
 	private final ImmutableList<Operation> sWrongBackwardsMove = ImmutableList.<Operation>of(
@@ -316,7 +352,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),		
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()));
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 	
 	//fox2 move out of the board
 	private final ImmutableList<Operation> fMoveOutOfBoard = ImmutableList.<Operation>of(
@@ -331,8 +368,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of())
-			);	
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));	
 	
 	//sheep17 move out of the board
 	private final ImmutableList<Operation> sMoveOutOfBoard = ImmutableList.<Operation>of(
@@ -347,8 +384,8 @@ public class GameLogicTest {
 					-1, -1, 20, 21, 22, -1, -1)),
 			new Set(F, ImmutableList.of(1, 2)),
 			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of())
-			);
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of(5)));
 	
 	@Test
 	public void testInitialMove() {
@@ -526,20 +563,36 @@ public class GameLogicTest {
 	}
 	
 	@Test
+	public void testArrivalChangeCurrectly(){
+		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sNormalForwardMove);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(0, verifyDone.getHackerPlayerId());	
+	}
+	
+	@Test
+	public void testArrivalChangeWrong(){
+		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sArriveButArrivalNotChange);
+		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
+	}
+	
+	@Test
 	public void testFoxWonAndEndGame(){	
-		ImmutableMap<String, Object> fWonState = ImmutableMap.<String, Object>of(
-				TURN, F,
-				BOARD, ImmutableList.of(
+		ImmutableMap<String, Object> fWonState = ImmutableMap.<String, Object>builder()
+				.put(TURN, F)
+				.put(BOARD, ImmutableList.of(
 						-1, -1,  0,  0,  0, -1, -1,
 						-1, -1,  0,  0,  2, -1, -1,
 						 0, 11, 20,  0,  0,  0,  0,
 						 0,  0,  0,  0,  0,  15,  0,
 						10,  0,  0, 18,  0,  0, 16,
 						-1, -1,  0,  1, 19, -1, -1,
-						-1, -1,  0, 21, 22, -1, -1),
-				F, ImmutableList.of(1, 2),
-				S, ImmutableList.of(10, 11, 15, 16, 18, 19, 20, 21, 22),
-				EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17));
+						-1, -1,  0, 21, 22, -1, -1))
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(10, 11, 15, 16, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17))
+				.put(ARRIVAL, ImmutableList.of(20))
+				.build();
 		
 		ImmutableList<Operation> fWonOperation = ImmutableList.<Operation>of(
 				new Set(TURN, S),
@@ -553,8 +606,8 @@ public class GameLogicTest {
 						-1, -1,  0, 21, 22, -1, -1)),
 				new Set(F, ImmutableList.of(1, 2)),
 				new Set(S, ImmutableList.of(10, 11, 15, 16, 19, 20, 21, 22)),
-				new Set(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17, 18))
-				);
+				new Set(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17, 18)),
+				new Set(ARRIVAL, ImmutableList.of(20)));
 		
 		VerifyMove verifyMove = move(fId, fWonState, fWonOperation);
 		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
@@ -563,19 +616,21 @@ public class GameLogicTest {
 	
 	@Test
 	public void testSheepWonAndEndGame(){	
-		ImmutableMap<String, Object> sWonState = ImmutableMap.<String, Object>of(
-				TURN, F,
-				BOARD, ImmutableList.of(
+		ImmutableMap<String, Object> sWonState = ImmutableMap.<String, Object>builder()
+				.put(TURN, F)
+				.put(BOARD, ImmutableList.of(
 						-1, -1,  3,  5, 12, -1, -1,
 						-1, -1,  4,  9,  7, -1, -1,
 						 0, 11, 20, 15,  0,  14,  0,
 						 0,  0,  1,  0,  2,  0, 17,
 						10,  0,  0,  0,  0,  0,  0,
 						-1, -1,  0,  0,  0, -1, -1,
-						-1, -1,  0,  0, 22, -1, -1),
-				F, ImmutableList.of(1, 2),
-				S, ImmutableList.of(3, 4, 5, 7, 9, 10, 12, 14, 15, 17, 20, 22),
-				EATEN, ImmutableList.of(6, 8, 11, 13, 16, 18, 19, 21));
+						-1, -1,  0,  0, 22, -1, -1))
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 7, 9, 10, 12, 14, 15, 17, 20, 22))
+				.put(EATEN, ImmutableList.of(6, 8, 11, 13, 16, 18, 19, 21))
+				.put(ARRIVAL, ImmutableList.of(3, 5, 12, 4, 9, 7, 20, 15))
+				.build();
 		
 		ImmutableList<Operation> sWonOperation = ImmutableList.<Operation>of(
 				new Set(TURN, S),
@@ -589,8 +644,8 @@ public class GameLogicTest {
 						-1, -1,  0,  0, 22, -1, -1)),
 				new Set(F, ImmutableList.of(1, 2)),
 				new Set(S, ImmutableList.of(3, 4, 5, 7, 9, 10, 12, 14, 15, 17, 20, 22)),
-				new Set(EATEN, ImmutableList.of(6, 8, 11, 13, 16, 18, 19, 21))
-				);
+				new Set(EATEN, ImmutableList.of(6, 8, 11, 13, 16, 18, 19, 21)),
+				new Set(ARRIVAL, ImmutableList.of(3, 5, 12, 4, 9, 7, 20, 15, 14)));
 		
 		VerifyMove verifyMove = move(fId, sWonState, sWonOperation);
 		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
