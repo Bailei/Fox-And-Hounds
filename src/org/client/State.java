@@ -8,9 +8,6 @@ public class State {
 
 	private Piece[][] board = new Piece[NUM_ROWS][NUM_COLS];
 	
-	/**
-	 * the initial board looks like ******* when game begin
-	 */
 	public State(){
 		setPiece(0, 2, new Piece(Color.F, PieceKind.FOX));
 		setPiece(0, 4, new Piece(Color.F, PieceKind.FOX));
@@ -71,7 +68,7 @@ public class State {
 
 	public Piece getPiece(int row, int col) {
 		return board[row][col];
-	}	  
+	}	
 }
 	
 
