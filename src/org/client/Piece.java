@@ -2,20 +2,14 @@ package org.client;
 
 
 public class Piece {
-	private Color color;
-	private PieceKind kind;
+	private PieceKind pieceKind;
 	
-	public Piece(Color color, PieceKind kind){
-		this.color = color;
-		this.kind = kind;
+	public Piece(PieceKind pieceKind){
+		this.pieceKind = pieceKind;
 	}
-	
-	public Color getColor(){
-		return color;
-	}
-	
-	public PieceKind getKind(){
-		return kind;
+
+	public PieceKind getPieceKind(){
+		return pieceKind;
 	}
 }
 

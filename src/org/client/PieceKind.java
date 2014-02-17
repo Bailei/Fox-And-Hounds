@@ -1,6 +1,29 @@
 package org.client;
 
 public enum PieceKind {
-	FOX,
-	SHEEP,
+	FOX1,
+	FOX2,
+	
+	SHEEP1,
+	SHEEP2,
+	SHEEP3,
+	SHEEP4,
+	SHEEP5,
+	SHEEP6,
+	SHEEP7,
+	SHEEP8,
+	SHEEP9,
+	SHEEP10,
+	SHEEP11,
+	SHEEP12,
+	SHEEP13,
+	SHEEP14,
+	SHEEP15,
+	SHEEP16,
+	SHEEP17,
+	SHEEP18,
+	SHEEP19,
+	SHEEP20,
+	
+	EMPTY,
 }

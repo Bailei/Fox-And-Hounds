@@ -1,74 +1,97 @@
 package org.client;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.LinkedList;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+
 public class State {
-	public static final int NUM_ROWS = 7;
-	public static final int NUM_COLS = 7;
-		
-	private Color turn = Color.F;
+	private final Color turn;
+	private final ImmutableList<Integer> playerIds;
+	private final ImmutableList<Piece> Fox;
+	private final ImmutableList<Piece> Sheep;
+	private final ImmutableList<Piece> EATEN;
+	private final ImmutableList<Piece> ARRIVAL;
+	private boolean Is_Fox_Move;
+	private boolean Is_Fox_Eat;		
+	private final ImmutableList<Piece> Board;
 
-	private Piece[][] board = new Piece[NUM_ROWS][NUM_COLS];
-	
-	public State(){
-		setPiece(0, 2, new Piece(Color.F, PieceKind.FOX));
-		setPiece(0, 4, new Piece(Color.F, PieceKind.FOX));
-		
-		setPiece(3, 0, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(3, 1, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(3, 2, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(3, 3, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(3, 4, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(3, 5, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(3, 6, new Piece(Color.S, PieceKind.SHEEP));
-		
-		setPiece(4, 0, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(4, 1, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(4, 2, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(4, 3, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(4, 4, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(4, 5, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(4, 6, new Piece(Color.S, PieceKind.SHEEP));
-		
-		setPiece(5, 2, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(5, 3, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(5, 4, new Piece(Color.S, PieceKind.SHEEP));
-		
-		setPiece(6, 2, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(6, 3, new Piece(Color.S, PieceKind.SHEEP));
-		setPiece(6, 4, new Piece(Color.S, PieceKind.SHEEP));		
-	}
+	public State(Color turn, ImmutableList<Piece> Board, ImmutableList<Integer> playerIds, 
+			boolean Is_Fox_Move, boolean Is_Fox_Eat,
+			ImmutableList<Piece> EATEN, ImmutableList<Piece> ARRIVAL,
+			ImmutableList<Piece> Fox, ImmutableList<Piece> Sheep) {
+		super();
+		this.turn = checkNotNull(turn);
+		this.Board = checkNotNull(Board);
+		this.playerIds = checkNotNull(playerIds);
 
-	public State(Color turn, Piece[][] board) {
-		this.turn = turn;
-		for (int r = 0; r < NUM_ROWS; r++) {
-			for (int c = 0; c < NUM_COLS; c++) {
-				this.board[r][c] = board[r][c];
-			}
-		}
+		this.Fox = checkNotNull(Fox);
+		this.Sheep = checkNotNull(Sheep);
+		this.EATEN = checkNotNull(EATEN);
+		this.ARRIVAL = checkNotNull(ARRIVAL);
+		
+		this.Is_Fox_Move = Is_Fox_Move;
+		this.Is_Fox_Eat = Is_Fox_Eat;
 	}
 	
 	public Color getTurn() {
 		return turn;
 	}
 
-	public void setTurn(Color turn) {
-		this.turn = turn;
+	public ImmutableList<Integer> getPlayerIds(){
+		return playerIds;
 	}
-
-	public void setPiece(Position position, Piece piece) {
-		setPiece(position.getRow(), position.getCol(), piece);
+	
+	public int getPlayerId(Color color){
+		return playerIds.get(color.ordinal());
 	}
-	  
-	public void setPiece(int row, int col, Piece piece) {
-		board[row][col] = piece;
+	
+	public ImmutableList<Piece> getBoard(){
+		return Board;
 	}
-	  
-	public Piece getPiece(Position position) {
-		return getPiece(position.getRow(), position.getCol());
+	
+	public ImmutableList<Piece> getFox(){
+		return Fox;
 	}
-
-	public Piece getPiece(int row, int col) {
-		return board[row][col];
+	
+	public ImmutableList<Piece> getSheep(){
+		return Sheep;
+	}
+	
+	public ImmutableList<Piece> getEATEN(){
+		return EATEN;
+	}
+	
+	public ImmutableList<Piece> getARRIVAL(){
+		return ARRIVAL;
+	}
+	
+	public boolean Is_Fox_Move(){
+		return Is_Fox_Move;
+	}
+	
+	public boolean Is_Fox_Eat(){
+		return Is_Fox_Eat;
 	}	
+
+/*
+	public Piece setPiece(Position position, Piece piece){
+		setPiece(position.getIndex(), piece);
+	}
+	
+	public Piece setPiece(int index, Piece piece){
+		setPiece(index, piece);
+	}
+*/
+	public Piece getPiece(Position position){
+		return getPiece(position.getIndex());
+	}
+	
+	public Piece getPiece(int index){
+		return Board.get(index);
+	}
 }
 	
 
