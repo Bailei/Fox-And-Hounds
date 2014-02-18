@@ -3,7 +3,9 @@ package org.client;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,127 +47,152 @@ public class GameLogic {
 	}
   
 	void checkMoveIsLegal(VerifyMove verifyMove){
-		List<Operation> lastMove = verifyMove.getLastMove(); 
-		Map<String, Object> lastState = verifyMove.getLastState();
-		//checking the operations are as expected
-		List<Operation> exceptedOperations = getExceptedOperations(
-				lastState, lastMove, verifyMove.getPlayerIds());
-		check(exceptedOperations.equals(lastMove),exceptedOperations, lastMove);
-		
-		//checking the right player did the move
-		//Color gotMoveFromColor = Color.values()[verifyMove.getPlayerIndex(verifyMove.getLastMovePlayerId())];
-		//check(gotMoveFromColor == getExpectedMoveFromColor(lastState), gotMoveFromColor);
-		
+		List<Operation> expectedOperations = getExpectedOperations(verifyMove);
+	    List<Operation> lastMove = verifyMove.getLastMove();
+	    check(expectedOperations.equals(lastMove), expectedOperations, lastMove);		
 		// We use SetTurn, so we don't need to check that the correct player did the move.
 	    // However, we do need to check the first move is done by the white player (and then in the
 	    // first MakeMove we'll send SetTurn which will guarantee the correct player send MakeMove).
-	    if (lastState.isEmpty()) {
-	      check(verifyMove.getLastMovePlayerId() == verifyMove.getPlayerIds().get(0));
+	    if (verifyMove.getLastState().isEmpty()) {
+	    	check(verifyMove.getLastMovePlayerId() == verifyMove.getPlayerIds().get(0));
 	    }
 	}
   	
 	private List<Operation> foxNormalMove(State lastState, List<Operation> lastMove) {
+		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
-		operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
-		operations.add(new Set(Is_Fox_Move, Yes));
 		
 		Set setFrom = (Set) lastMove.get(2);
 		Set setTo = (Set) lastMove.get(3);
 		
-		Integer from = (Integer) setFrom.getValue();
-		Integer to = (Integer) setTo.getValue();
+		String from = (String) setFrom.getValue();
+		String to = (String) setTo.getValue();
 		
-		if(!checkAPositionIsFox(from) || !checkFoxCanMove(from)){
+		if(checkAPositionIsFox(from, lastState) && checkFoxCanMove(from, lastState)){
+			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
+			operations.add(new Set(Is_Fox_Move, Yes));
+			operations.add(new Set(From, from));
+			operations.add(new Set(To, to));
+		}else{
 			throw new RuntimeException();
 		}
-		operations.add(new Set(From, from));
-		operations.add(new Set(To, to));
 		return operations;
 	}
 
 	private List<Operation> doFoxNormalMove(State lastState, List<Operation> lastMove) {
+		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
 		
 		Set setFrom = (Set) lastMove.get(2);
 		Set setTo = (Set) lastMove.get(3);
+		Integer[][] lastB = lastState.getBoard();
 		
-		Integer from = (Integer) setFrom.getValue();
-		Integer to = (Integer) setTo.getValue();  
+		String from = (String) setFrom.getValue();
+		String to = (String) setTo.getValue();  
+		String anotherFox = findAnotherFox(from, lastState);
+
+		int xfrom = Integer.valueOf(from) % 10;
+		int yfrom = Integer.valueOf(from) / 10;
 		
-		//找出另外一只狐狸的位置
-		Integer anotherFox = 0;
+		int xto = Integer.valueOf(from) % 10;
+		int yto = Integer.valueOf(from) / 10;
 		
-		if(!checkAPositionIsFox(from) || checkFoxCanEat(from) || checkFoxCanEat(anotherFox)){
-			throw new RuntimeException();
-		}else if(checkAPositionIsEmpty(to)){
-//			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor().ordinal())));
-			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor())));
-			
+		lastB[xto][yto] = lastB[xfrom][xfrom];
+		lastB[xfrom][yfrom] = 0;
+		
+		if(checkAPositionIsFox(from, lastState) && checkAPositionIsEmpty(to, lastState)
+				&& !checkFoxCanEat(from, lastState) && !checkFoxCanEat(anotherFox, lastState)){
+			//operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor().ordinal())));
+			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor())));			
 			//更新board，from位置的狐狸删去，to位置添加狐狸
-			operations.add(new Set(Board));
-			
+			operations.add(new Set(Board, lastB));			
 			operations.add(new Delete(Is_Fox_Move));
+		}else{
+			throw new RuntimeException();
 		}
 		return operations;
 	}
 
 	private List<Operation> foxEatMove(State lastState, List<Operation> lastMove) {
+		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
-		operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
-		operations.add(new Set(Is_Fox_Eat, Yes));
 		
 		Set setFrom = (Set) lastMove.get(2);
 		Set setTo = (Set) lastMove.get(3);
 		
-		Integer from = (Integer) setFrom.getValue();
-		Integer to = (Integer) setTo.getValue();
+		String from = (String) setFrom.getValue();
+		String to = (String) setTo.getValue();
 		
-		if(!checkAPositionIsFox(from) || !checkFoxCanEat(from)){
+		if(checkAPositionIsFox(from, lastState) && checkFoxCanEat(from, lastState)){
+			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
+			operations.add(new Set(Is_Fox_Eat, Yes));
+			operations.add(new Set(From, from));
+			operations.add(new Set(To, to));
+		}else{
 			throw new RuntimeException();
 		}
-		operations.add(new Set(From, from));
-		operations.add(new Set(To, to));
 		return operations;
 	}
 
 	private List<Operation> doFoxEatMove(State lastState, List<Operation> lastMove) {
+		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
 		
 		Set setFrom = (Set) lastMove.get(2);
 		Set setTo = (Set) lastMove.get(3);
 		
-		Integer from = (Integer) setFrom.getValue();
-		Integer to = (Integer) setTo.getValue();  
+		String from = (String) setFrom.getValue();
+		String to = (String) setTo.getValue();  
 		
-		//找出另外一只狐狸的位置
-		//Integer anotherFox = 0;
-		if(checkAPositionIsFox(from) && checkFoxCanEat(from)){
-			if(checkFoxCanEat(to)){
+		Integer[][] lastB = lastState.getBoard();
+		Integer[][] newB = lastB;
+		
+		List<Integer> lastS = lastState.getSheep();
+		List<Integer> diedS = ImmutableList.<Integer>of();
+		
+		List<Integer> lastEaten = lastState.getEATEN();
+		
+		List<Integer> lastArrival = lastState.getARRIVAL();
+		
+		int xfrom = Integer.valueOf(from) % 10;
+		int yfrom = Integer.valueOf(from) / 10;
+		
+		int xto = Integer.valueOf(from) % 10;
+		int yto = Integer.valueOf(from) / 10;
+		
+		diedS.add(lastB[(xfrom + xto) / 2][(yfrom + yto) / 2]);
+		
+		newB[xto][yto] = lastB[xfrom][xfrom];
+		newB[xfrom][yfrom] = 0;
+		newB[(xfrom + xto) / 2][(yfrom + yto) / 2] = 0;
+		
+		List<Integer> newS = subtract(lastS, diedS);
+		List<Integer> newEaten = concat(lastEaten, diedS);
+		List<Integer> newArrival = lastArrival;
+		if(lastArrival.contains(lastB[(xfrom + xto) / 2][(yfrom + yto) / 2])){
+			newArrival = subtract(lastArrival, diedS);
+		}
+		
+		if(checkAPositionIsFox(from, lastState) && checkFoxCanEat(from, lastState)){
+			if(checkFoxCanEat(to, lastState)){
+				operations.add(new Delete(Is_Fox_Eat));
 				operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 			}else{
+				operations.add(new Delete(Is_Fox_Eat));
 				//operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor().ordinal())));
 				operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor())));
 			}
-			
-			//更新board，from位置的狐狸删去，to位置添加狐狸，from和to之间的sheep删去
-			operations.add(new Set(Board, ()));
-			
-			//更新Sheep的list和EATEN的list，以及ARRIVAL的list
-			operations.add(new Set(S, ()));
-			operations.add(new Set(EATEN, ()));
-			
-			//check does fox win
-			if(EATEN中羊数量 >= 12){
-				ENDGAME;
+			operations.add(new Set(Board, newB));
+			operations.add(new Set(S, newS));
+			operations.add(new Set(EATEN, newEaten));
+			if(getHowManySheepHaveBeenArrived(lastState) >= 12){
+				operations.add(new EndGame(lastState.getPlayerId(turnOfColor)));
 			}
-			
-			operations.add(new Set(ARRIVAL, ()));
-			
-			operations.add(new Delete(Is_Fox_Eat));
+			operations.add(new Set(ARRIVAL, newArrival));
 		}else{
 			throw new RuntimeException();
 		}
@@ -173,28 +200,42 @@ public class GameLogic {
 	}
 	
 	private List<Operation> doSheepMove(State lastState, List<Operation> lastMove) {
+		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
-		operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		
 		Set setFrom = (Set) lastMove.get(2);
 		Set setTo = (Set) lastMove.get(3);
 		
-		Integer from = (Integer) setFrom.getValue();
-		Integer to = (Integer) setTo.getValue();
+		String from = (String) setFrom.getValue();
+		String to = (String) setTo.getValue();
 		
-		if(checkSheepCanMove(from, to)){
+		Integer[][] lastB = lastState.getBoard();
+		Integer[][] newB = lastB;
+		
+		List<Integer> lastArrival = lastState.getARRIVAL();
+		
+		int xfrom = Integer.valueOf(from) % 10;
+		int yfrom = Integer.valueOf(from) / 10;
+		
+		int xto = Integer.valueOf(from) % 10;
+		int yto = Integer.valueOf(from) / 10;
+		
+		newB[xto][yto] = lastB[xfrom][xfrom];
+		newB[xfrom][yfrom] = 0;
+		
+		List<Integer> newArrival = lastArrival;
+		if(xto >= 0 && xto <= 2 && yto >= 2 && yto <= 4){
+			newArrival.add(newB[xto][yto]);
+		}
+		
+		if(checkSheepCanMove(from, lastState)){
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor())));
+			operations.add(new Set(Board, newB));
+			operations.add(new Set(ARRIVAL, newArrival));
 			
-			//更新board，from位置的狐狸删去，to位置添加狐狸，from和to之间的sheep删去
-			operations.add(new Set(Board, ()));
-			
-			//更新Sheep的list和EATEN的list，以及ARRIVAL的list
-			operations.add(new Set(S, ()));
-			operations.add(new Set(EATEN, ()));
-			operations.add(new Set(ARRIVAL, ()));
-			if(ARRIVAL中羊的数量 == 9){
-				ENDGAME;
+			if(getHowManySheepHaveBeenArrived(lastState) == 9){
+				operations.add(new EndGame(lastState.getPlayerId(turnOfColor)));
 			}
 		}else{
 			throw new RuntimeException();
@@ -202,53 +243,189 @@ public class GameLogic {
 		return operations;
 	}
 		
-	private boolean checkFoxCanEat(Integer integer) {
-		// TODO Auto-generated method stub	
-		return false;
+	private boolean checkFoxCanEat(String st, State lastState) {
+//		Integer [][] lastB = lastState.getBoard();
+		int x = Integer.valueOf(st) % 10;
+		int y = Integer.valueOf(st) / 10;
+		
+		//同偶或同奇
+		if((x % 2 == 0 && y % 2 == 0) || ((x % 2) == 1 && (y % 2) == 1)){
+			if(checkAPositionIsSheep(x - 1, y, lastState) && checkAPositionIsEmpty(x - 2, y, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x + 1, y, lastState) && checkAPositionIsEmpty(x + 2, y, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x, y - 1, lastState) && checkAPositionIsEmpty(x, y - 2, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x, y + 1, lastState) && checkAPositionIsEmpty(x, y + 2, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x - 1, y + 1, lastState) && checkAPositionIsEmpty(x - 2, y + 2, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x + 1, y  + 1, lastState) && checkAPositionIsEmpty(x + 2, y + 2, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x - 1, y - 1, lastState) && checkAPositionIsEmpty(x - 2, y - 2, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x + 1, y - 1, lastState) && checkAPositionIsEmpty(x + 2, y - 2, lastState)){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			//不同偶或不同奇
+			if(checkAPositionIsSheep(x - 1, y, lastState) && checkAPositionIsEmpty(x - 2, y, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x + 1, y, lastState) && checkAPositionIsEmpty(x + 2, y, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x, y - 1, lastState) && checkAPositionIsEmpty(x, y - 2, lastState)){
+				return true;
+			}else if(checkAPositionIsSheep(x, y + 1, lastState) && checkAPositionIsEmpty(x, y + 2, lastState)){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
+	
+	private boolean checkFoxCanMove(String st, State lastState) {
+//		Integer [][] lastB = lastState.getBoard();
+		int x = Integer.valueOf(st) % 10;
+		int y = Integer.valueOf(st) / 10;
+		
+		//同偶或同奇
+		if((x % 2 == 0 && y % 2 == 0) || ((x % 2) == 1 && (y % 2) == 1)){
+			if(checkAPositionIsEmpty(x - 1, y, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x + 1, y, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x, y - 1, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x, y + 1, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x - 1, y + 1, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x + 1, y + 1, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x - 1, y - 1, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x + 1, y - 1, lastState)){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			//不同偶或不同奇
+			if(checkAPositionIsEmpty(x - 1, y + 1, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x + 1, y + 1, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x - 1, y - 1, lastState)){
+				return true;
+			}else if(checkAPositionIsEmpty(x + 1, y - 1, lastState)){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
+	
+	private boolean checkSheepCanMove(String st, State lastState){
+//		Integer [][] lastB = lastState.getBoard();
+		int x = Integer.valueOf(st) % 10;
+		int y = Integer.valueOf(st) / 10;
+		
+		if(checkAPositionIsEmpty(x - 1, y + 1, lastState)){
+			return true;
+		}else if(checkAPositionIsEmpty(x + 1, y + 1, lastState)){
+			return true;
+		}else if(checkAPositionIsEmpty(x - 1, y - 1, lastState)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	private boolean checkAPositionIsFox(String st, State lastState){
+		Integer [][] lastB = lastState.getBoard();	
+		int x = Integer.valueOf(st) % 10;
+		int y = Integer.valueOf(st) / 10;	
+		if(lastB[x][y] != 1 || lastB[x][y] != 2)
+			return false;
+		return true;
+	}
+	
+	private boolean checkAPositionIsFox(int x, int y, State lastState){
+		Integer [][] lastB = lastState.getBoard();		
+		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB[x][y] != 1 || lastB[x][y] != 2)
+			return false;
+		return true;
+	}
+	
+	private boolean checkAPositionIsSheep(String st, State lastState){
+		Integer [][] lastB = lastState.getBoard();
+		int x = Integer.valueOf(st) % 10;
+		int y = Integer.valueOf(st) / 10;
+		if(lastB[x][y] < 3 || lastB[x][y] > 22)
+			return false;
+		return true;
+	}
+	
+	private boolean checkAPositionIsSheep(int x, int y, State lastState){
+		Integer [][] lastB = lastState.getBoard();
+		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB[x][y] >= 3 && lastB[x][y] <= 22)
+			return false;
+		return true;
+	}
+	
+	private boolean checkAPositionIsEmpty(String st, State lastState){
+		Integer [][] lastB = lastState.getBoard();
+		int x = Integer.valueOf(st) % 10;
+		int y = Integer.valueOf(st) / 10;
+		if(lastB[x][y] != 0)
+			return false;
+		return true;
+	}
+	
+	private boolean checkAPositionIsEmpty(int x, int y, State lastState){
+		Integer [][] lastB = lastState.getBoard();
+		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB[x][y] == 0)
+			return false;
+		return true;
 	}
 
-	private boolean checkFoxCanMove(Integer integer) {
-		// TODO Auto-generated method stub		
-		return false;
+	private String findAnotherFox(String st, State lastState){
+		Integer [][] lastB = lastState.getBoard();
+		int x = Integer.valueOf(st) % 10;
+		int y = Integer.valueOf(st) / 10;
+		int anotherFox = 0;
+		String anotherSt;
+		for(int i = 0; i < 7; i++){
+			for(int j = 0; j < 7; j++){
+				if(lastB[x][y] == 1 && lastB[i][j] == 2)
+					anotherFox = i * 10 + j;
+				else if(lastB[x][y] == 2 && lastB[i][j] == 1){
+					anotherFox = i * 10 + j;
+				}
+			}
+		}		
+		anotherSt = Integer.toString(anotherFox);
+		return anotherSt;
 	}
 	
-	private boolean checkAPositionIsFox(Integer integer){
-		return false;
+	private int getHowManySheepHaveBeenEaten(State lastState){
+		ImmutableList<Integer> lastEaten = lastState.getEATEN();
+		return lastEaten.size();
 	}
 	
-	private boolean checkAPositionIsSheep(Integer integer){
-		return false;
-	}
-	
-	private boolean checkAPositionIsEmpty(Integer integer){
-		return false;
-	}
-	
-	private boolean checkSheepCanMove(Integer integerFrom, Integer integerTo){
-		return false;
-	}
-
-	private int getHowManySheepHaveBeenEaten(){
-		// TODO Auto-generated method stub
-		return 0;
-	}
-	
-	private int getHowManySheepHaveBeenArrived(){
-		// TODO Auto-generated method stub
-		return 0;
+	private int getHowManySheepHaveBeenArrived(State lastState){
+		ImmutableList<Integer> lastArrival = lastState.getEATEN();
+		return lastArrival.size();
 	}	
-	
-	private List<Operation> getExceptedOperations(
-			Map<String, Object> lastState, List<Operation> lastMove,
-			List<Integer> playerIds) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
-	List<Operation> getInitialMove(int foxPlayerId, int sheepPlayerId){
+	List<Operation> getMoveInitial(List<Integer> playerIds){
+	    int fPlayerId = playerIds.get(0);
+	    int sPlayerId = playerIds.get(1);
 		List<Operation> operations = Lists.newArrayList();
 		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, F, S, EATEN, ARRIVAL
-		operations.add(new SetTurn(foxPlayerId));
+		operations.add(new SetTurn(fPlayerId));
 		operations.add(new Set(Board, ImmutableList.of(
 				-1, -1,  1,  0,  2, -1, -1,
 				-1, -1,  0,  0,  0, -1, -1,
@@ -266,13 +443,16 @@ public class GameLogic {
 	}
 	
 	@SuppressWarnings("unchecked")
-	List<Operation> getExpectedOperations(Map<String, Object> lastApiState, List<Operation> lastMove, List<Integer> playerIds,
-			int lastMovePlayerId){
-		if(lastApiState.isEmpty()){
-			return getInitialMove(playerIds.get(0), playerIds.get(1));
-		}
-		State lastState = gameApiStateToState(lastApiState, Color.values()[playerIds.indexOf(lastMovePlayerId)], playerIds);
-		//There are 5 types of moves:
+	List<Operation> getExpectedOperations(VerifyMove verifyMove){
+		List<Operation> lastMove = verifyMove.getLastMove();
+	    Map<String, Object> lastApiState = verifyMove.getLastState();
+	    List<Integer> playerIds = verifyMove.getPlayerIds();
+	    if (lastApiState.isEmpty()) {
+	      return getMoveInitial(playerIds);
+	    }
+	    int lastMovePlayerId = verifyMove.getLastMovePlayerId();
+	    State lastState = gameApiStateToState(lastApiState,
+	        Color.values()[playerIds.indexOf(lastMovePlayerId)], playerIds);
 		// 1) foxNormalMove
 		// 2) doFoxNormalMove
 		// 3) foxEatMove
@@ -290,12 +470,39 @@ public class GameLogic {
 			return doSheepMove(lastState, lastMove);
 		}
 	}
+	
+	<T> List<T> concat(List<T> a, List<T> b) {
+		return Lists.newArrayList(Iterables.concat(a, b));
+	}	
 
+	<T> List<T> subtract(List<T> removeFrom, List<T> elementsToRemove) {
+		check(removeFrom.containsAll(elementsToRemove), removeFrom, elementsToRemove);
+	    List<T> result = Lists.newArrayList(removeFrom);
+	    result.removeAll(elementsToRemove);
+	    check(removeFrom.size() == result.size() + elementsToRemove.size());
+	    return result;
+	}
+	
 	@SuppressWarnings("unchecked")
 	private State gameApiStateToState(Map<String, Object> gameApiState,
 			Color turnOfColor, List<Integer> playerIds){
-		// TODO Auto-generated method stub
-		return null;
+	    List<Integer> f = (List<Integer>) gameApiState.get(F);
+	    List<Integer> s = (List<Integer>) gameApiState.get(S);
+	    List<Integer> eaten = (List<Integer>) gameApiState.get(EATEN);
+	    List<Integer> arrival = (List<Integer>) gameApiState.get(ARRIVAL);
+	    Integer[][] board = (Integer[][]) gameApiState.get(Board);
+	    Integer[][] boardTemp = board;
+	    
+	    return new State(
+	        turnOfColor,
+	        boardTemp,
+	        ImmutableList.copyOf(playerIds),
+	        gameApiState.containsKey(Is_Fox_Move),
+	        gameApiState.containsKey(Is_Fox_Eat),
+	        ImmutableList.copyOf(eaten),
+	        ImmutableList.copyOf(arrival),
+	        ImmutableList.copyOf(f),
+	        ImmutableList.copyOf(s));
 	}
 	
 	private void check(boolean val, Object... debugArguments){
