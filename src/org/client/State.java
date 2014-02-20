@@ -2,6 +2,7 @@ package org.client;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import com.google.common.base.Optional;
@@ -9,19 +10,19 @@ import com.google.common.collect.ImmutableList;
 
 public class State {
 	private final Color turn;
+	private final ArrayList<ArrayList<Integer>> Board;
 	private final ImmutableList<Integer> playerIds;
-	private final ImmutableList<Piece> Fox;
-	private final ImmutableList<Piece> Sheep;
-	private final ImmutableList<Piece> EATEN;
-	private final ImmutableList<Piece> ARRIVAL;
 	private boolean Is_Fox_Move;
-	private boolean Is_Fox_Eat;		
-	private final ImmutableList<Piece> Board;
+	private boolean Is_Fox_Eat;	
+	private final ImmutableList<Integer> Fox;
+	private final ImmutableList<Integer> Sheep;
+	private final ImmutableList<Integer> EATEN;
+	private final ImmutableList<Integer> ARRIVAL;	
 
-	public State(Color turn, ImmutableList<Piece> Board, ImmutableList<Integer> playerIds, 
+	public State(Color turn, ArrayList<ArrayList<Integer>> Board, ImmutableList<Integer> playerIds, 
 			boolean Is_Fox_Move, boolean Is_Fox_Eat,
-			ImmutableList<Piece> EATEN, ImmutableList<Piece> ARRIVAL,
-			ImmutableList<Piece> Fox, ImmutableList<Piece> Sheep) {
+			ImmutableList<Integer> Fox, ImmutableList<Integer> Sheep,
+			ImmutableList<Integer> EATEN, ImmutableList<Integer> ARRIVAL) {
 		super();
 		this.turn = checkNotNull(turn);
 		this.Board = checkNotNull(Board);
@@ -48,23 +49,23 @@ public class State {
 		return playerIds.get(color.ordinal());
 	}
 	
-	public ImmutableList<Piece> getBoard(){
+	public ArrayList<ArrayList<Integer>> getBoard(){
 		return Board;
 	}
 	
-	public ImmutableList<Piece> getFox(){
+	public ImmutableList<Integer> getFox(){
 		return Fox;
 	}
 	
-	public ImmutableList<Piece> getSheep(){
+	public ImmutableList<Integer> getSheep(){
 		return Sheep;
 	}
 	
-	public ImmutableList<Piece> getEATEN(){
+	public ImmutableList<Integer> getEATEN(){
 		return EATEN;
 	}
 	
-	public ImmutableList<Piece> getARRIVAL(){
+	public ImmutableList<Integer> getARRIVAL(){
 		return ARRIVAL;
 	}
 	
@@ -75,23 +76,7 @@ public class State {
 	public boolean Is_Fox_Eat(){
 		return Is_Fox_Eat;
 	}	
-
-/*
-	public Piece setPiece(Position position, Piece piece){
-		setPiece(position.getIndex(), piece);
-	}
 	
-	public Piece setPiece(int index, Piece piece){
-		setPiece(index, piece);
-	}
-*/
-	public Piece getPiece(Position position){
-		return getPiece(position.getIndex());
-	}
-	
-	public Piece getPiece(int index){
-		return Board.get(index);
-	}
 }
 	
 

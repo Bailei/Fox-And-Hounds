@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,7 +26,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 public class GameLogic {
-	private static final String TURN = "TURN";
 	private static final String F = "F";
 	private static final String S = "S";
 	private static final String Is_Fox_Move = "Is_Fox_Move";
@@ -59,15 +59,27 @@ public class GameLogic {
 	}
   	
 	private List<Operation> foxNormalMove(State lastState, List<Operation> lastMove) {
+		check(!lastState.Is_Fox_Move());
+		check(!lastState.Is_Fox_Eat());
 		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
-		
+		//suppose that fox want to make a normal move
+		// 0) new SetTurn(playerId of F);
+		// 1) new Set(Is_Fox_Move, Yes);
+		// 2) new Set(From, ...);
+		// 3) new Set(To, ...);
 		Set setFrom = (Set) lastMove.get(2);
 		Set setTo = (Set) lastMove.get(3);
-		
 		String from = (String) setFrom.getValue();
 		String to = (String) setTo.getValue();
+		int xfrom = Integer.valueOf(from) % 10;
+		int yfrom = Integer.valueOf(from) / 10;		
+		int xto = Integer.valueOf(to) % 10;
+		int yto = Integer.valueOf(to) / 10;
+		check((Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 1) ||
+				(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 1) || 
+				(Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 0));
 		
 		if(checkAPositionIsFox(from, lastState) && checkFoxCanMove(from, lastState)){
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
@@ -75,56 +87,72 @@ public class GameLogic {
 			operations.add(new Set(From, from));
 			operations.add(new Set(To, to));
 		}else{
-			throw new RuntimeException();
+			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		}
 		return operations;
 	}
 
 	private List<Operation> doFoxNormalMove(State lastState, List<Operation> lastMove) {
-		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
+		check(lastState.Is_Fox_Move());
+		check(!lastState.Is_Fox_Eat());
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
-		
+		//suppose that fox make a normal move
+		// 0) new SetTurn(playerId of S);
+		// 1) new Delete(Is_Fox_Move);
+		// 2) new Set(From, ...);
+		// 3) new Set(To, ...);
+		// 4) new Set(Board, ...);
+		// 5) ...		
 		Set setFrom = (Set) lastMove.get(2);
 		Set setTo = (Set) lastMove.get(3);
-		Integer[][] lastB = lastState.getBoard();
-		
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();		
 		String from = (String) setFrom.getValue();
 		String to = (String) setTo.getValue();  
 		String anotherFox = findAnotherFox(from, lastState);
 
 		int xfrom = Integer.valueOf(from) % 10;
-		int yfrom = Integer.valueOf(from) / 10;
-		
-		int xto = Integer.valueOf(from) % 10;
-		int yto = Integer.valueOf(from) / 10;
-		
-		lastB[xto][yto] = lastB[xfrom][xfrom];
-		lastB[xfrom][yfrom] = 0;
+		int yfrom = Integer.valueOf(from) / 10;		
+		int xto = Integer.valueOf(to) % 10;
+		int yto = Integer.valueOf(to) / 10;		
+		lastB.get(xto).set(yto, lastB.get(xfrom).get(xfrom));
+		lastB.get(xfrom).set(yfrom, 0);
 		
 		if(checkAPositionIsFox(from, lastState) && checkAPositionIsEmpty(to, lastState)
 				&& !checkFoxCanEat(from, lastState) && !checkFoxCanEat(anotherFox, lastState)){
-			//operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor().ordinal())));
-			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor())));			
-			//更新board，from位置的狐狸删去，to位置添加狐狸
-			operations.add(new Set(Board, lastB));			
+			new SetTurn(lastState.getPlayerIds().get(turnOfColor.getOppositeColor().ordinal()));					
 			operations.add(new Delete(Is_Fox_Move));
+			operations.add(new Set(Board, lastB));
 		}else{
-			throw new RuntimeException();
+			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		}
 		return operations;
 	}
 
 	private List<Operation> foxEatMove(State lastState, List<Operation> lastMove) {
-		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
+		check(!lastState.Is_Fox_Move());
+		check(!lastState.Is_Fox_Eat());
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
-		
+		//suppose that fox want to make a eat move
+		// 0) new SetTurn(playerId of F);
+		// 1) new Set(Is_Fox_Eat, Yes);
+		// 2) new Set(From, ...);
+		// 3) new Set(To, ...);		
 		Set setFrom = (Set) lastMove.get(2);
-		Set setTo = (Set) lastMove.get(3);
-		
+		Set setTo = (Set) lastMove.get(3);		
 		String from = (String) setFrom.getValue();
 		String to = (String) setTo.getValue();
+		
+		int xfrom = Integer.valueOf(from) % 10;
+		int yfrom = Integer.valueOf(from) / 10;		
+		int xto = Integer.valueOf(to) % 10;
+		int yto = Integer.valueOf(to) / 10;
+		check((Math.abs(xfrom-xto) == 2 && Math.abs(yfrom - yto) == 2) ||
+				(Math.abs(xfrom-xto) == 2 && Math.abs(yfrom - yto) == 0) || 
+				(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 2));
 		
 		if(checkAPositionIsFox(from, lastState) && checkFoxCanEat(from, lastState)){
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
@@ -132,24 +160,33 @@ public class GameLogic {
 			operations.add(new Set(From, from));
 			operations.add(new Set(To, to));
 		}else{
-			throw new RuntimeException();
+			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		}
 		return operations;
 	}
 
 	private List<Operation> doFoxEatMove(State lastState, List<Operation> lastMove) {
-		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
+		check(!lastState.Is_Fox_Move());
+		check(lastState.Is_Fox_Eat());
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
-		
+		//suppose that fox make a eat move
+		// 0) new SetTurn(playerId of S);
+		// 1) new Delete(Is_Fox_Eat);
+		// 2) new Set(Board, ...);
+		// 3) new Set(S, ...);
+		// 4) new Set(EATEN, ...);
+		// 5) new Set(ARRIVAL, ...);
+	    // AND: if fox have eaten 12 sheep, then the game ends!
+	    // Let's determine just by looking at the lastState.
+
 		Set setFrom = (Set) lastMove.get(2);
 		Set setTo = (Set) lastMove.get(3);
-		
 		String from = (String) setFrom.getValue();
-		String to = (String) setTo.getValue();  
-		
-		Integer[][] lastB = lastState.getBoard();
-		Integer[][] newB = lastB;
+		String to = (String) setTo.getValue();  		
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
+		ArrayList<ArrayList<Integer>> newB = lastB;
 		
 		List<Integer> lastS = lastState.getSheep();
 		List<Integer> diedS = ImmutableList.<Integer>of();
@@ -161,72 +198,80 @@ public class GameLogic {
 		int xfrom = Integer.valueOf(from) % 10;
 		int yfrom = Integer.valueOf(from) / 10;
 		
-		int xto = Integer.valueOf(from) % 10;
-		int yto = Integer.valueOf(from) / 10;
+		int xto = Integer.valueOf(to) % 10;
+		int yto = Integer.valueOf(to) / 10;
 		
-		diedS.add(lastB[(xfrom + xto) / 2][(yfrom + yto) / 2]);
-		
-		newB[xto][yto] = lastB[xfrom][xfrom];
-		newB[xfrom][yfrom] = 0;
-		newB[(xfrom + xto) / 2][(yfrom + yto) / 2] = 0;
+		diedS.add(lastB.get((xfrom + xto) / 2).get((yfrom + yto) / 2));
+	
+		newB.get(xto).set(yto, lastB.get(xfrom).get(xfrom));
+		newB.get(xfrom).set(yfrom, 0);
+		newB.get((xfrom + xto) / 2).set((yfrom + yto) / 2, 0);
 		
 		List<Integer> newS = subtract(lastS, diedS);
 		List<Integer> newEaten = concat(lastEaten, diedS);
 		List<Integer> newArrival = lastArrival;
-		if(lastArrival.contains(lastB[(xfrom + xto) / 2][(yfrom + yto) / 2])){
+		if(lastArrival.contains(lastB.get((xfrom + xto) / 2).get((yfrom + yto) / 2))){
 			newArrival = subtract(lastArrival, diedS);
 		}
 		
 		if(checkAPositionIsFox(from, lastState) && checkFoxCanEat(from, lastState)){
 			if(checkFoxCanEat(to, lastState)){
-				operations.add(new Delete(Is_Fox_Eat));
 				operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
-			}else{
 				operations.add(new Delete(Is_Fox_Eat));
-				//operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor().ordinal())));
-				operations.add(new SetTurn(lastState.getPlayerId(turnOfColor.getOppositeColor())));
+			}else{
+				new SetTurn(lastState.getPlayerIds().get(turnOfColor.getOppositeColor().ordinal()));
+				operations.add(new Delete(Is_Fox_Eat));
 			}
 			operations.add(new Set(Board, newB));
 			operations.add(new Set(S, newS));
 			operations.add(new Set(EATEN, newEaten));
-			if(getHowManySheepHaveBeenArrived(lastState) >= 12){
+			if(getHowManySheepHaveBeenEaten(lastState) >= 12){
 				operations.add(new EndGame(lastState.getPlayerId(turnOfColor)));
 			}
 			operations.add(new Set(ARRIVAL, newArrival));
 		}else{
-			throw new RuntimeException();
+			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		}
 		return operations;
 	}
 	
 	private List<Operation> doSheepMove(State lastState, List<Operation> lastMove) {
-		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
+		check(!lastState.Is_Fox_Move());
+		check(!lastState.Is_Fox_Eat());
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
+		//suppose that sheep want to make a move
+		// 0) new SetTurn(playerId of F);
+		// 2) new Set(From, ...);
+		// 3) new Set(To, ...);	
+		// 4) new Set(ARRIVAL, ...);
+	    // AND: if 9 sheep arrives at the paddock, then the game ends!
+	    // Let's determine just by looking at the lastState.
 		
-		Set setFrom = (Set) lastMove.get(2);
-		Set setTo = (Set) lastMove.get(3);
-		
+		Set setFrom = (Set) lastMove.get(1);
+		Set setTo = (Set) lastMove.get(2);
 		String from = (String) setFrom.getValue();
-		String to = (String) setTo.getValue();
-		
-		Integer[][] lastB = lastState.getBoard();
-		Integer[][] newB = lastB;
+		String to = (String) setTo.getValue();		
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
+		ArrayList<ArrayList<Integer>> newB = lastB;
 		
 		List<Integer> lastArrival = lastState.getARRIVAL();
 		
 		int xfrom = Integer.valueOf(from) % 10;
-		int yfrom = Integer.valueOf(from) / 10;
+		int yfrom = Integer.valueOf(from) / 10;	
+		int xto = Integer.valueOf(to) % 10;
+		int yto = Integer.valueOf(to) / 10;
+		check((Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 1) ||
+				(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 1) || 
+				(Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 0));
 		
-		int xto = Integer.valueOf(from) % 10;
-		int yto = Integer.valueOf(from) / 10;
-		
-		newB[xto][yto] = lastB[xfrom][xfrom];
-		newB[xfrom][yfrom] = 0;
+		newB.get(xto).set(yto, lastB.get(xfrom).get(yfrom));
+		newB.get(xfrom).set(yfrom, 0);
 		
 		List<Integer> newArrival = lastArrival;
 		if(xto >= 0 && xto <= 2 && yto >= 2 && yto <= 4){
-			newArrival.add(newB[xto][yto]);
+			newArrival.add(newB.get(xto).get(yto));
 		}
 		
 		if(checkSheepCanMove(from, lastState)){
@@ -238,17 +283,16 @@ public class GameLogic {
 				operations.add(new EndGame(lastState.getPlayerId(turnOfColor)));
 			}
 		}else{
-			throw new RuntimeException();
+			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		}
 		return operations;
 	}
 		
 	private boolean checkFoxCanEat(String st, State lastState) {
-//		Integer [][] lastB = lastState.getBoard();
 		int x = Integer.valueOf(st) % 10;
 		int y = Integer.valueOf(st) / 10;
 		
-		//同偶或同奇
+		//x and y are both even or odd
 		if((x % 2 == 0 && y % 2 == 0) || ((x % 2) == 1 && (y % 2) == 1)){
 			if(checkAPositionIsSheep(x - 1, y, lastState) && checkAPositionIsEmpty(x - 2, y, lastState)){
 				return true;
@@ -270,7 +314,7 @@ public class GameLogic {
 				return false;
 			}
 		}else{
-			//不同偶或不同奇
+			//x is even and y is odd, or x is odd and y is even
 			if(checkAPositionIsSheep(x - 1, y, lastState) && checkAPositionIsEmpty(x - 2, y, lastState)){
 				return true;
 			}else if(checkAPositionIsSheep(x + 1, y, lastState) && checkAPositionIsEmpty(x + 2, y, lastState)){
@@ -286,11 +330,10 @@ public class GameLogic {
 	}
 	
 	private boolean checkFoxCanMove(String st, State lastState) {
-//		Integer [][] lastB = lastState.getBoard();
 		int x = Integer.valueOf(st) % 10;
 		int y = Integer.valueOf(st) / 10;
 		
-		//同偶或同奇
+		//x and y are both even or odd
 		if((x % 2 == 0 && y % 2 == 0) || ((x % 2) == 1 && (y % 2) == 1)){
 			if(checkAPositionIsEmpty(x - 1, y, lastState)){
 				return true;
@@ -312,7 +355,7 @@ public class GameLogic {
 				return false;
 			}
 		}else{
-			//不同偶或不同奇
+			//x is even and y is odd, or x is odd and y is even
 			if(checkAPositionIsEmpty(x - 1, y + 1, lastState)){
 				return true;
 			}else if(checkAPositionIsEmpty(x + 1, y + 1, lastState)){
@@ -328,7 +371,6 @@ public class GameLogic {
 	}
 	
 	private boolean checkSheepCanMove(String st, State lastState){
-//		Integer [][] lastB = lastState.getBoard();
 		int x = Integer.valueOf(st) % 10;
 		int y = Integer.valueOf(st) / 10;
 		
@@ -344,14 +386,15 @@ public class GameLogic {
 	}
 	
 	private boolean checkAPositionIsFox(String st, State lastState){
-		Integer [][] lastB = lastState.getBoard();	
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();	
 		int x = Integer.valueOf(st) % 10;
 		int y = Integer.valueOf(st) / 10;	
-		if(lastB[x][y] != 1 || lastB[x][y] != 2)
+		if(lastB.get(x).get(y) != 1 || lastB.get(x).get(y) != 2)
 			return false;
 		return true;
 	}
-	
+
+/*
 	private boolean checkAPositionIsFox(int x, int y, State lastState){
 		Integer [][] lastB = lastState.getBoard();		
 		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB[x][y] != 1 || lastB[x][y] != 2)
@@ -367,41 +410,42 @@ public class GameLogic {
 			return false;
 		return true;
 	}
+*/
 	
 	private boolean checkAPositionIsSheep(int x, int y, State lastState){
-		Integer [][] lastB = lastState.getBoard();
-		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB[x][y] >= 3 && lastB[x][y] <= 22)
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
+		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB.get(x).get(y) >= 3 && lastB.get(x).get(y) <= 22)
 			return false;
 		return true;
 	}
 	
 	private boolean checkAPositionIsEmpty(String st, State lastState){
-		Integer [][] lastB = lastState.getBoard();
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
 		int x = Integer.valueOf(st) % 10;
 		int y = Integer.valueOf(st) / 10;
-		if(lastB[x][y] != 0)
+		if(lastB.get(x).get(y) != 0)
 			return false;
 		return true;
 	}
 	
 	private boolean checkAPositionIsEmpty(int x, int y, State lastState){
-		Integer [][] lastB = lastState.getBoard();
-		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB[x][y] == 0)
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
+		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB.get(x).get(y) == 0)
 			return false;
 		return true;
 	}
 
 	private String findAnotherFox(String st, State lastState){
-		Integer [][] lastB = lastState.getBoard();
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
 		int x = Integer.valueOf(st) % 10;
 		int y = Integer.valueOf(st) / 10;
 		int anotherFox = 0;
 		String anotherSt;
 		for(int i = 0; i < 7; i++){
 			for(int j = 0; j < 7; j++){
-				if(lastB[x][y] == 1 && lastB[i][j] == 2)
+				if(lastB.get(x).get(y) == 1 && lastB.get(i).get(j) == 2)
 					anotherFox = i * 10 + j;
-				else if(lastB[x][y] == 2 && lastB[i][j] == 1){
+				else if(lastB.get(x).get(y) == 2 && lastB.get(i).get(j) == 1){
 					anotherFox = i * 10 + j;
 				}
 			}
@@ -421,19 +465,28 @@ public class GameLogic {
 	}	
 
 	List<Operation> getMoveInitial(List<Integer> playerIds){
+		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  1,  0,  2, -1, -1);
+		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  0,  0,  0,  0,  0);
+		List<Integer> row4 = Arrays.<Integer>asList( 3,  4,  5,  6,  7,  8,  9);
+		List<Integer> row5 = Arrays.<Integer>asList(10, 11, 12, 13, 14, 15, 16);
+		List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		board.add(new ArrayList<Integer>(row1));
+		board.add(new ArrayList<Integer>(row2));
+		board.add(new ArrayList<Integer>(row3));
+		board.add(new ArrayList<Integer>(row4));
+		board.add(new ArrayList<Integer>(row5));
+		board.add(new ArrayList<Integer>(row6));
+		board.add(new ArrayList<Integer>(row7));
+
 	    int fPlayerId = playerIds.get(0);
 	    int sPlayerId = playerIds.get(1);
 		List<Operation> operations = Lists.newArrayList();
 		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, F, S, EATEN, ARRIVAL
 		operations.add(new SetTurn(fPlayerId));
-		operations.add(new Set(Board, ImmutableList.of(
-				-1, -1,  1,  0,  2, -1, -1,
-				-1, -1,  0,  0,  0, -1, -1,
-				 0,  0,  0,  0,  0,  0,  0,
-				 3,  4,  5,  6,  7,  8,  9,
-				10, 11, 12, 13, 14, 15, 16,
-				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1)));
+		operations.add(new Set(Board, board));
 		operations.add(new Set(F, ImmutableList.of(1, 2)));
 		operations.add(new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)));
 		operations.add(new Set(EATEN, ImmutableList.of()));
@@ -450,9 +503,11 @@ public class GameLogic {
 	    if (lastApiState.isEmpty()) {
 	      return getMoveInitial(playerIds);
 	    }
+	   
 	    int lastMovePlayerId = verifyMove.getLastMovePlayerId();
+	    System.out.println(lastMovePlayerId);
 	    State lastState = gameApiStateToState(lastApiState,
-	        Color.values()[playerIds.indexOf(lastMovePlayerId)], playerIds);
+	            Color.values()[playerIds.indexOf(lastMovePlayerId)], playerIds);
 		// 1) foxNormalMove
 		// 2) doFoxNormalMove
 		// 3) foxEatMove
@@ -490,8 +545,8 @@ public class GameLogic {
 	    List<Integer> s = (List<Integer>) gameApiState.get(S);
 	    List<Integer> eaten = (List<Integer>) gameApiState.get(EATEN);
 	    List<Integer> arrival = (List<Integer>) gameApiState.get(ARRIVAL);
-	    Integer[][] board = (Integer[][]) gameApiState.get(Board);
-	    Integer[][] boardTemp = board;
+	    ArrayList<ArrayList<Integer>> board = (ArrayList<ArrayList<Integer>>) gameApiState.get(Board);
+	    ArrayList<ArrayList<Integer>> boardTemp = board;
 	    
 	    return new State(
 	        turnOfColor,
@@ -499,10 +554,10 @@ public class GameLogic {
 	        ImmutableList.copyOf(playerIds),
 	        gameApiState.containsKey(Is_Fox_Move),
 	        gameApiState.containsKey(Is_Fox_Eat),
-	        ImmutableList.copyOf(eaten),
-	        ImmutableList.copyOf(arrival),
 	        ImmutableList.copyOf(f),
-	        ImmutableList.copyOf(s));
+	        ImmutableList.copyOf(s),
+	        ImmutableList.copyOf(eaten),
+	        ImmutableList.copyOf(arrival));
 	}
 	
 	private void check(boolean val, Object... debugArguments){
@@ -511,4 +566,5 @@ public class GameLogic {
 					+ Arrays.toString(debugArguments));
 		}
 	}
+	
 }

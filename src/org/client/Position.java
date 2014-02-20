@@ -1,13 +1,19 @@
 package org.client;
 
 public class Position {
-	private int index;
+	private int row;
+	private int col;
 	
-	public Position(int index){
-		this.index = index;
+	public Position(int row, int col){
+		this.row = row;
+		this.col = col;
 	}
 	
-	public int getIndex() {
-		return index;
+	public int getRow() {
+		return row;
+	}
+	
+	public int getCol(){
+		return col;
 	}
 }

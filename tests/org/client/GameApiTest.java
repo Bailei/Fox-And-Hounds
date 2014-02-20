@@ -12,15 +12,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.client.GameApi.AttemptChangeTokens;
 import org.client.GameApi.EndGame;
 import org.client.GameApi.GameReady;
-import org.client.GameApi.HasEquality;
+import org.client.GameApi.Message;
 import org.client.GameApi.MakeMove;
 import org.client.GameApi.ManipulateState;
 import org.client.GameApi.ManipulationDone;
 import org.client.GameApi.Operation;
 import org.client.GameApi.RequestManipulator;
 import org.client.GameApi.Set;
+import org.client.GameApi.SetTurn;
 import org.client.GameApi.SetRandomInteger;
 import org.client.GameApi.SetVisibility;
 import org.client.GameApi.Shuffle;
@@ -43,12 +45,13 @@ public class GameApiTest {
   SetRandomInteger setRandomInteger = new SetRandomInteger("xcv", 23, 54);
   List<Operation> operations = Arrays.asList(set, setRandomInteger, set);
 
-  List<HasEquality> messages =
-      Arrays.<HasEquality>asList(
-          new UpdateUI(42, playersInfo, state, lastState, operations, 12),
-          new VerifyMove(42, playersInfo, state, lastState, operations, 23),
+  List<Message> messages =
+      Arrays.<Message>asList(
+          new UpdateUI(42, playersInfo, state, lastState, operations, 12, ImmutableMap.of(42, 1)),
+          new VerifyMove(playersInfo, state, lastState, operations, 23, ImmutableMap.of(42, 33)),
           set, setRandomInteger,
           new EndGame(32),
+          new EndGame(ImmutableMap.of(42, -1232, 43, -5454)),
           new SetVisibility("sd"),
           new Shuffle(Lists.newArrayList("xzc", "zxc")),
           new GameReady(),
@@ -57,20 +60,24 @@ public class GameApiTest {
           new VerifyMoveDone(23, "asd"),
           new RequestManipulator(),
           new ManipulateState(state),
-          new ManipulationDone(operations)
+          new ManipulationDone(operations),
+          new SetTurn(41),
+          new SetTurn(41, 23),
+          new AttemptChangeTokens(ImmutableMap.of(42, -1232, 43, -5454),
+              ImmutableMap.of(42, 1232, 43, 5454))
           );
 
   @Test
   public void testSerialization() {
-    for (HasEquality equality : messages) {
-      assertEquals(equality, HasEquality.messageToHasEquality(equality.toMessage()));
+    for (Message equality : messages) {
+      assertEquals(equality, Message.messageToHasEquality(equality.toMessage()));
     }
   }
 
   @Test
   public void testEquals() {
-    for (HasEquality equality : messages) {
-      for (HasEquality equalityOther : messages) {
+    for (Message equality : messages) {
+      for (Message equalityOther : messages) {
         if (equality != equalityOther) {
           assertNotEquals(equality, equalityOther);
         }

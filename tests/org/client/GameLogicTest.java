@@ -1,6 +1,7 @@
 package org.client;
 
 import static org.junit.Assert.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -8,6 +9,8 @@ import org.junit.runners.JUnit4;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +18,7 @@ import org.client.GameApi.Delete;
 import org.client.GameApi.EndGame;
 import org.client.GameApi.Operation;
 import org.client.GameApi.Set;
+import org.client.GameApi.SetTurn;
 import org.client.GameApi.SetVisibility;
 import org.client.GameApi.Shuffle;
 import org.client.GameApi.VerifyMove;
@@ -30,41 +34,34 @@ import com.google.common.collect.Lists;
 public class GameLogicTest {
 	/** The object under test. */
 	GameLogic gameLogic = new GameLogic();
-
-/*
+	
 	private void assertMoveOk(VerifyMove verifyMove) {
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-			assertEquals(new VerifyMoveDone(), verifyDone);
+		gameLogic.checkMoveIsLegal(verifyMove);
 	}
 
 	private void assertHacker(VerifyMove verifyMove) {
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-			assertEquals(new VerifyMoveDone(verifyMove.getLastMovePlayerId(), "Hacker found"), verifyDone);
-	}
-*/
-	
-/*
-	private void assertMoveOk(VerifyMove verifyMove){
-		gameLogic.checkMoveIsLegal(verifyMove);
+		VerifyMoveDone verifyDone = gameLogic.verify(verifyMove);
+		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
 	}
 	
-	private void assertHacker(VerifyMove verifyMove){
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
-	}
-*/
+	/* The entries used in the game are:
+	*   Is_Fox_Move:Yes, Is_Fox_Eat:Yes, From, To, Board, F, S, EATEN, ARRIVAL
+	* When we send operations on these keys, it will always be in the above order.
+	*/		
 	private static final String PLAYER_ID = "PLAYER_ID";
-	
-	private final int fId = 1;
-	private final int sId = 2;
+	private final int fId = 0;
+	private final int sId = 1;
 	private final String TURN = "TURN";
+	private static final String Is_Fox_Move = "Is_Fox_Move";
+	private static final String Is_Fox_Eat = "Is_Fox_Eat";
+	private static final String Yes = "Yes";
+	private static final String From = "From";
+	private static final String To = "To";
+	private static final String BOARD = "Board";
 	private static final String F = "F"; // FOX hand
-	private static final String S = "S"; // SHEEP hand
-	private static final String BOARD = "BOARD"; 
+	private static final String S = "S"; // SHEEP hand 
 	private static final String EATEN = "EATEN";
 	private static final String ARRIVAL = "ARRIVAL";
-	private static final String IS_FoxMove = "IS_FoxMove";
-	private static final String YES = "yes";
 	private final Map<String, Object> wInfo = ImmutableMap.<String, Object>of(PLAYER_ID, fId);
 	private final Map<String, Object> bInfo = ImmutableMap.<String, Object>of(PLAYER_ID, sId);
 	private final List<Map<String, Object>> playersInfo = ImmutableList.of(wInfo, bInfo);
@@ -77,578 +74,817 @@ public class GameLogicTest {
 			List<Operation> lastMove){
 		return new VerifyMove(playersInfo, emptyState, lastState, lastMove, lastMovePlayerId, ImmutableMap.<Integer, Integer>of());
 	}
-
-/*
-	private List<Operation> getInitialOperation(){
-		return gameLogic.getInitialMove(fId, sId);
+	
+	private ArrayList<ArrayList<Integer>> boardForInitialState() {
+		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  1,  0,  2, -1, -1);
+		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  0,  0,  0,  0,  0);
+		List<Integer> row4 = Arrays.<Integer>asList( 3,  4,  5,  6,  7,  8,  9);
+		List<Integer> row5 = Arrays.<Integer>asList(10, 11, 12, 13, 14, 15, 16);
+		List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		board.add(new ArrayList<Integer>(row1));
+		board.add(new ArrayList<Integer>(row2));
+		board.add(new ArrayList<Integer>(row3));
+		board.add(new ArrayList<Integer>(row4));
+		board.add(new ArrayList<Integer>(row5));
+		board.add(new ArrayList<Integer>(row6));
+		board.add(new ArrayList<Integer>(row7));
+		return board;
 	}
-*/
-	
-	private final ImmutableMap<String, Object> initialState = ImmutableMap.<String, Object>builder()
-		.put(TURN, F)
-		.put(BOARD, ImmutableList.of(
-				-1, -1,  1,  0,  2, -1, -1,
-				-1, -1,  0,  0,  0, -1, -1,
-				 0,  0,  0,  0,  0,  0,  0,
-				 3,  4,  5,  6,  7,  8,  9,
-				10, 11, 12, 13, 14, 15, 16,
-				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1))
-		.put(F, ImmutableList.of(1, 2))
-		.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
-		.put(EATEN, ImmutableList.of())
-		.put(ARRIVAL, ImmutableList.of())
-		.build();
-	
-	private final ImmutableMap<String, Object> turnOfFoxInOneState = ImmutableMap.<String, Object>builder()
-		.put(TURN, F)
-		.put(BOARD, ImmutableList.of(
-				-1, -1,  0,  0,  0, -1, -1,
-				-1, -1,  0,  1,  0, -1, -1,
-				 0,  0,  5,  0,  2,  0,  0,
-				 3,  4, 12,  6,  7,  8,  9,
-				10, 11,  0, 13, 14, 15, 16,
-				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1))
-		.put(F, ImmutableList.of(1, 2))
-		.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
-		.put(EATEN, ImmutableList.of())
-		.put(ARRIVAL, ImmutableList.of(5))
-		.build();
-
-	private final ImmutableMap<String, Object> turnOfSheepInOneState = ImmutableMap.<String, Object>builder()
-		.put(TURN, S)
-		.put(BOARD, ImmutableList.of(
-				-1, -1,  0,  0,  0, -1, -1,
-				-1, -1,  0,  1,  0, -1, -1,
-				 0,  0,  5,  0,  2,  0,  0,
-				 3,  4, 12,  6,  7,  8,  9,
-				10, 11,  0, 13, 14, 15, 16,
-				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1))
-		.put(F, ImmutableList.of(1, 2))
-		.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
-		.put(EATEN, ImmutableList.of())
-		.put(ARRIVAL, ImmutableList.of(5))
-		.build();
 	
 	private final ImmutableList<Operation> initialMoveByF = ImmutableList.<Operation>of(
-			new Set(TURN, F),
-			new Set(BOARD, ImmutableList.of(
-				-1, -1,  1,  0,  2, -1, -1,
-				-1, -1,  0,  0,  0, -1, -1,
-				 0,  0,  0,  0,  0,  0,  0,
-				 3,  4,  5,  6,  7,  8,  9,
-				10, 11, 12, 13, 14, 15, 16,
-				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1)),
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of()));
-	
-	//fox2 eat sheep6 (lastState: turnofF)
-	private final ImmutableList<Operation> foxMoveToEatSheep = ImmutableList.<Operation>of(
-			new Set(TURN, S),
-			new Set(BOARD, ImmutableList.of(
-				-1, -1,  0,  0,  0, -1, -1,
-				-1, -1,  0,  1,  0, -1, -1,
-				 0,  0,  5,  0,  0,  0,  0,
-				 3,  4, 12,  0,  7,  8,  9,
-				10, 11,  2, 13, 14, 15, 16,
-				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of(6)),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-
-	//fox2 eat sheep6 but sheep6 still alive (lastState: turnofF)
-	private final ImmutableList<Operation> foxMoveToEatSheepButSheepAlive = ImmutableList.<Operation>of(
-			new Set(TURN, S),
-			new Set(BOARD, ImmutableList.of(
-				-1, -1,  0,  0,  0, -1, -1,
-				-1, -1,  0,  1,  0, -1, -1,
-				 0,  0,  5,  0,  0,  0,  0,
-				 3,  4, 12,  6,  7,  8,  9,
-				10, 11,  2, 13,  14, 15, 16,
-				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-	
-	//fox2 eat sheep7 by wrong move (lastState: turnofF)
-	private final ImmutableList<Operation> foxMoveToEatSheepByWrongMove = ImmutableList.<Operation>of(
-			new Set(TURN, S),
-			new Set(BOARD, ImmutableList.of(
-				-1, -1,  0,  0,  0, -1, -1,
-				-1, -1,  0,  1,  0, -1, -1,
-				 0,  0,  5,  0,  0,  0,  0,
-				 3,  4, 12,  6,  0,  8,  9,
-				10, 11,  0, 13,  2, 15, 16,
-				-1, -1, 17, 18, 19, -1, -1,
-				-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of(7)),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-
-	//fox1 move forward  (lastState: turnofF)
-	private final ImmutableList<Operation> fNormalForwardMove = ImmutableList.<Operation>of(
-			new Set(TURN, S),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  0,  0, -1, -1,
-					-1, -1,  0,  0,  0, -1, -1,
-					 0,  0,  5,  1,  2,  0,  0,
-					 3,  4, 12,  6,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-	
-	//Both fox1 and fox2 move forward at one time  (lastState: turnofF)
-	private final ImmutableList<Operation> twoFoxForwardMoveAtOneTime = ImmutableList.<Operation>of(
-			new Set(TURN, S),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  0,  0, -1, -1,
-					-1, -1,  0,  0,  2, -1, -1,
-					 0,  0,  5,  1,  0,  0,  0,
-					 3,  4, 12,  6,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-
-	//fox1 move backward  (lastState: turnofF)
-	private final ImmutableList<Operation> fNormalBackwardMove = ImmutableList.<Operation>of(
-			new Set(TURN, S),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  1,  0, -1, -1,
-					-1, -1,  0,  0,  0, -1, -1,
-					 0,  0,  5,  0,  2,  0,  0,
-					 3,  4, 12,  6,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-	
-	//fox1 move diagonal (lastState: turnofF)
-	private final ImmutableList<Operation> fNormalDiagonalMove = ImmutableList.<Operation>of(
-			new Set(TURN, S),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  1,  0,  0, -1, -1,
-					-1, -1,  0,  0,  0, -1, -1,
-					 0,  0,  5,  0,  2,  0,  0,
-					 3,  4, 12,  6,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-	
-	//sheep6 move forward (lastState: turnofS)
-	private final ImmutableList<Operation> sNormalForwardMove = ImmutableList.<Operation>of(
-			new Set(TURN, F),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  0,  0, -1, -1,
-					-1, -1,  0,  1,  0, -1, -1,
-					 0,  0,  5,  6,  2,  0,  0,
-					 3,  4, 12,  0,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5, 6)));
-	
-	//sheep6 move in to the paddock, but Arrival does not change (lastState: turnofS)
-	private final ImmutableList<Operation> sArriveButArrivalNotChange = ImmutableList.<Operation>of(
-			new Set(TURN, F),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  0,  0, -1, -1,
-					-1, -1,  0,  1,  0, -1, -1,
-					 0,  0,  5,  6,  2,  0,  0,
-					 3,  4, 12,  0,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-	
-	//Both sheep6  and sheep8 move at one time (lastState: turnofS)
-	private final ImmutableList<Operation> twoSheepMoveAtOneTime = ImmutableList.<Operation>of(
-			new Set(TURN, F),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  0,  0, -1, -1,
-					-1, -1,  0,  1,  0, -1, -1,
-					 0,  0,  5,  6,  2,  8,  0,
-					 3,  4, 12,  0,  7,  0,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5, 6)));
-	
-	//sheep6 move sideways (lastState: turnofS)
-	private final ImmutableList<Operation> sNormalSidesWayMove = ImmutableList.<Operation>of(
-			new Set(TURN, F),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  0,  0, -1, -1,
-					-1, -1,  0,  1,  0, -1, -1,
-					 0,  5,  0,  0,  2,  0,  0,
-					 3,  4, 12,  6,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of()));
-
-	//sheep6 move forward two squares(lastState: turnofS)
-	private final ImmutableList<Operation> sWrongTwoSquaresMove = ImmutableList.<Operation>of(
-			new Set(TURN, F),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  5,  0,  0, -1, -1,
-					-1, -1,  0,  1,  0, -1, -1,
-					 0,  0,  0,  0,  2,  0,  0,
-					 3,  4, 12,  6,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-	
-	//sheep6 move backwards(lastState: turnofS)
-	private final ImmutableList<Operation> sWrongBackwardsMove = ImmutableList.<Operation>of(
-			new Set(TURN, F),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  0,  0, -1, -1,
-					-1, -1,  0,  1,  0, -1, -1,
-					 0,  0,  5,  0,  2,  0,  0,
-					 3,  4,  0,  6,  7,  8,  9,
-					10, 11,  12, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),		
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));
-	
-	//fox2 move out of the board
-	private final ImmutableList<Operation> fMoveOutOfBoard = ImmutableList.<Operation>of(
-			new Set(TURN, F),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  0,  0, -1, -1,
-					-1, -1,  0,  1,  0,  2, -1,
-					 0,  0,  5,  0,  0,  0,  0,
-					 3,  4, 12,  6,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, -1, 17, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));	
-	
-	//sheep17 move out of the board
-	private final ImmutableList<Operation> sMoveOutOfBoard = ImmutableList.<Operation>of(
-			new Set(TURN, F),
-			new Set(BOARD, ImmutableList.of(
-					-1, -1,  0,  0,  0, -1, -1,
-					-1, -1,  0,  1,  0, -1, -1,
-					 0,  0,  5,  0,  0,  0,  0,
-					 3,  4, 12,  6,  7,  8,  9,
-					10, 11,  0, 13, 14, 15, 16,
-					-1, 17,  0, 18, 19, -1, -1,
-					-1, -1, 20, 21, 22, -1, -1)),
-			new Set(F, ImmutableList.of(1, 2)),
-			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of()),
-			new Set(ARRIVAL, ImmutableList.of(5)));
+			new SetTurn(fId),
+			new Set(BOARD, boardForInitialState()));
 	
 	@Test
 	public void testInitialMove() {
-		VerifyMove verifyMove = move(fId, emptyState, initialMoveByF);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());
+		assertMoveOk(move(fId, emptyState, initialMoveByF));
 	}
 
 	@Test
 	public void testInitialMoveByWrongPlayer(){
-		VerifyMove verifyMove = move(sId, emptyState, initialMoveByF);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+		assertHacker(move(sId, emptyState, initialMoveByF));
 	}
 	
 	@Test
 	public void testInitialMoveFromNonEmptyState(){
-		VerifyMove verifyMove = move(fId, nonEmptyState, initialMoveByF);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+		assertHacker(move(fId, nonEmptyState, initialMoveByF));
 	}
 	
+	ImmutableList<Operation> fNormalForwardMove = ImmutableList.<Operation>of(
+			new Set(TURN, F),
+			new Set(Is_Fox_Move, Yes),
+			new Set(From, "13"),
+			new Set(To, "03"));	
 	@Test
 	public void testInitialMoveWithExtroOperation(){
-		VerifyMove verifyMove = move(fId, emptyState, fNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
+		assertHacker(move(fId, emptyState, fNormalForwardMove));
 	}
 	
 	@Test
-	public void testNormalForwardMoveByFox(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, fNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());		
-	}
+	public void testFox1WantNormalMoveInWrongState(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(BOARD, board)
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(fId),
+				new Set(Is_Fox_Move, Yes),
+				new Set(From, "13"),
+				new Set(To, "03"));		
+		assertHacker(move(fId, state, operations));
+		assertHacker(move(sId, state, operations));			
+}
 	
 	@Test
-	public void testNormalBackwardMoveByFox(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, fNormalBackwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());		
-	}
+	public void testFox2WantNormalMoveInRightState(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  12, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(BOARD, board)
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(fId),
+				new Set(Is_Fox_Move, Yes),
+				new Set(From, "13"),
+				new Set(To, "03"));
+						
+		assertMoveOk(move(fId, state, operations));
+		assertHacker(move(sId, state, operations));	
+}
 	
 	@Test
-	public void testNormalDiagonalMoveByFox(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, fNormalDiagonalMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());		
-	}
+	public void testFox2DoNormalForwardMoveInRightState(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  12, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+			
+			ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  1,  2,  0,  0);
+			List<Integer> row4after = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+			List<Integer> row5after = Arrays.<Integer>asList(10, 11,  12, 13, 14, 15, 16);
+			List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			boardAfter.add(new ArrayList<Integer>(row1after));
+			boardAfter.add(new ArrayList<Integer>(row2after));
+			boardAfter.add(new ArrayList<Integer>(row3after));
+			boardAfter.add(new ArrayList<Integer>(row4after));
+			boardAfter.add(new ArrayList<Integer>(row5after));
+			boardAfter.add(new ArrayList<Integer>(row6after));
+			boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(Is_Fox_Move, Yes)
+				.put(BOARD, board)
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(sId),
+				new Delete(Is_Fox_Move),
+				new Set(BOARD, boardAfter));
+									
+		assertMoveOk(move(fId, state, operations));
+		assertHacker(move(sId, state, operations));	
+}
 	
 	@Test
-	public void testFoxMoveToEatSheep(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, foxMoveToEatSheep);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());		
-	}
+	public void testFox2DoNormalBackwardMoveInRightState(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  12, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+			
+			ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4after = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+			List<Integer> row5after = Arrays.<Integer>asList(10, 11,  12, 13, 14, 15, 16);
+			List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			boardAfter.add(new ArrayList<Integer>(row1after));
+			boardAfter.add(new ArrayList<Integer>(row2after));
+			boardAfter.add(new ArrayList<Integer>(row3after));
+			boardAfter.add(new ArrayList<Integer>(row4after));
+			boardAfter.add(new ArrayList<Integer>(row5after));
+			boardAfter.add(new ArrayList<Integer>(row6after));
+			boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(Is_Fox_Move, Yes)
+				.put(BOARD, board)
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(sId),
+				new Delete(Is_Fox_Move),
+				new Set(BOARD, boardAfter));
+									
+		assertMoveOk(move(fId, state, operations));
+		assertHacker(move(sId, state, operations));	
+}
+	@Test
+	public void testFox2DoNormalDiagonalMoveInRightState(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  12, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+			
+			ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  1,  0,  0, -1, -1);
+			List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4after = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+			List<Integer> row5after = Arrays.<Integer>asList(10, 11,  12, 13, 14, 15, 16);
+			List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			boardAfter.add(new ArrayList<Integer>(row1after));
+			boardAfter.add(new ArrayList<Integer>(row2after));
+			boardAfter.add(new ArrayList<Integer>(row3after));
+			boardAfter.add(new ArrayList<Integer>(row4after));
+			boardAfter.add(new ArrayList<Integer>(row5after));
+			boardAfter.add(new ArrayList<Integer>(row6after));
+			boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(Is_Fox_Move, Yes)
+				.put(BOARD, board)
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(sId),
+				new Delete(Is_Fox_Move),
+				new Set(BOARD, boardAfter));
+									
+		assertMoveOk(move(fId, state, operations));
+		assertHacker(move(sId, state, operations));	
+}
 	
 	@Test
-	public void testFoxEatSheepButSheepNotBeEatten(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, foxMoveToEatSheepButSheepAlive);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
-	}
+	public void testFox1WantEatMoveInRightState(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(BOARD, board)
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(fId),
+				new Set(Is_Fox_Eat, Yes),
+				new Set(From, "24"),
+				new Set(To, "42"));		
+		
+		assertMoveOk(move(fId, state, operations));		
+}	
+	@Test
+	public void testFox2DoEatMoveInRightState(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+			
+			ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  0,  0,  0,  0);
+			List<Integer> row4after = Arrays.<Integer>asList( 3,  4,  0,  0,  7,  8,  9);
+			List<Integer> row5after = Arrays.<Integer>asList(10, 11,  2, 13, 14, 15, 16);
+			List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			boardAfter.add(new ArrayList<Integer>(row1after));
+			boardAfter.add(new ArrayList<Integer>(row2after));
+			boardAfter.add(new ArrayList<Integer>(row3after));
+			boardAfter.add(new ArrayList<Integer>(row4after));
+			boardAfter.add(new ArrayList<Integer>(row5after));
+			boardAfter.add(new ArrayList<Integer>(row6after));
+			boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(Is_Fox_Move, Yes)
+				.put(BOARD, board)
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(sId),
+				new Delete(Is_Fox_Move),
+				new Set(BOARD, boardAfter),
+				new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+				new Set(EATEN, ImmutableList.of(6)));
+		
+		assertMoveOk(move(fId, state, operations));
+}
 	
 	@Test
-	public void testWrongMovebyFoxToEatSheep(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, foxMoveToEatSheepByWrongMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
-	}
+	public void testFox2DoWrongEatMoveInRightState(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+			
+			ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  0,  0,  0,  0);
+			List<Integer> row4after = Arrays.<Integer>asList( 3,  4, 12,  6,  0,  8,  9);
+			List<Integer> row5after = Arrays.<Integer>asList(10, 11,  0, 13,  2, 15, 16);
+			List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			boardAfter.add(new ArrayList<Integer>(row1after));
+			boardAfter.add(new ArrayList<Integer>(row2after));
+			boardAfter.add(new ArrayList<Integer>(row3after));
+			boardAfter.add(new ArrayList<Integer>(row4after));
+			boardAfter.add(new ArrayList<Integer>(row5after));
+			boardAfter.add(new ArrayList<Integer>(row6after));
+			boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(Is_Fox_Move, Yes)
+				.put(BOARD, board)
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(sId),
+				new Delete(Is_Fox_Move),
+				new Set(BOARD, boardAfter),
+				new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22)),
+				new Set(EATEN, ImmutableList.of(7)));
+		
+		assertHacker(move(fId, state, operations));
+}
+	@Test
+	public void testFox2DoWrongEatMoveInRightStateButSheepNotBeEatten(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+			
+			ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  0,  0,  0,  0);
+			List<Integer> row4after = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+			List<Integer> row5after = Arrays.<Integer>asList(10, 11,  2, 13, 14, 15, 16);
+			List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			boardAfter.add(new ArrayList<Integer>(row1after));
+			boardAfter.add(new ArrayList<Integer>(row2after));
+			boardAfter.add(new ArrayList<Integer>(row3after));
+			boardAfter.add(new ArrayList<Integer>(row4after));
+			boardAfter.add(new ArrayList<Integer>(row5after));
+			boardAfter.add(new ArrayList<Integer>(row6after));
+			boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(Is_Fox_Move, Yes)
+				.put(BOARD, board)
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(sId),
+				new Delete(Is_Fox_Move),
+				new Set(BOARD, boardAfter),
+				new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22)),
+				new Set(EATEN, ImmutableList.of()));
+		ImmutableList<Operation> operations1 = ImmutableList.<Operation>of(
+				new SetTurn(sId),
+				new Delete(Is_Fox_Move),
+				new Set(BOARD, boardAfter),
+				new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22)),
+				new Set(EATEN, ImmutableList.of(6)));
+		
+		assertHacker(move(fId, state, operations));
+		assertHacker(move(fId, state, operations1));
+}
 
 	@Test
 	public void testNormalForwardMoveBySheep(){
-		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());		
+		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  2, -1, -1);
+		List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  0,  0,  0);
+		List<Integer> row4 = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+		List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+		List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		board.add(new ArrayList<Integer>(row1));
+		board.add(new ArrayList<Integer>(row2));
+		board.add(new ArrayList<Integer>(row3));
+		board.add(new ArrayList<Integer>(row4));
+		board.add(new ArrayList<Integer>(row5));
+		board.add(new ArrayList<Integer>(row6));
+		board.add(new ArrayList<Integer>(row7));
+		
+		ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+		List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  6,  2,  0,  0);
+		List<Integer> row4after = Arrays.<Integer>asList( 3,  4, 12,  0,  7,  8,  9);
+		List<Integer> row5after = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+		List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		boardAfter.add(new ArrayList<Integer>(row1after));
+		boardAfter.add(new ArrayList<Integer>(row2after));
+		boardAfter.add(new ArrayList<Integer>(row3after));
+		boardAfter.add(new ArrayList<Integer>(row4after));
+		boardAfter.add(new ArrayList<Integer>(row5after));
+		boardAfter.add(new ArrayList<Integer>(row6after));
+		boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+			.put(BOARD, board)
+			.put(F, ImmutableList.of(1, 2))
+			.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+			.put(EATEN, ImmutableList.of())
+			.put(ARRIVAL, ImmutableList.of(5))
+			.build();
+		
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+			new SetTurn(fId),
+			new Set(BOARD, boardAfter),
+			new Set(ARRIVAL, ImmutableList.of(6)));
+		
+		assertMoveOk(move(sId, state, operations));
 	}
 	
 	@Test
 	public void testNormalSidesWayMoveBySheep(){
-		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sNormalSidesWayMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());		
-	}
-	
-	@Test
-	public void testWrongTwoSquaresForwardMove(){
-		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sWrongTwoSquaresMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());			
+		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  2, -1, -1);
+		List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  0,  0,  0);
+		List<Integer> row4 = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+		List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+		List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		board.add(new ArrayList<Integer>(row1));
+		board.add(new ArrayList<Integer>(row2));
+		board.add(new ArrayList<Integer>(row3));
+		board.add(new ArrayList<Integer>(row4));
+		board.add(new ArrayList<Integer>(row5));
+		board.add(new ArrayList<Integer>(row6));
+		board.add(new ArrayList<Integer>(row7));
+		
+		ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+		List<Integer> row3after = Arrays.<Integer>asList( 0,  5,  0,  0,  2,  0,  0);
+		List<Integer> row4after = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+		List<Integer> row5after = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+		List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		boardAfter.add(new ArrayList<Integer>(row1after));
+		boardAfter.add(new ArrayList<Integer>(row2after));
+		boardAfter.add(new ArrayList<Integer>(row3after));
+		boardAfter.add(new ArrayList<Integer>(row4after));
+		boardAfter.add(new ArrayList<Integer>(row5after));
+		boardAfter.add(new ArrayList<Integer>(row6after));
+		boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+			.put(BOARD, board)
+			.put(F, ImmutableList.of(1, 2))
+			.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+			.put(EATEN, ImmutableList.of())
+			.put(ARRIVAL, ImmutableList.of(5))
+			.build();
+		
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+			new SetTurn(fId),
+			new Set(BOARD, boardAfter),
+			new Set(ARRIVAL, ImmutableList.of()));	
+		
+		assertMoveOk(move(sId, state, operations));
 	}
 	
 	@Test
 	public void testWrongBackwardsMoveBySheep(){
-		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sWrongBackwardsMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
+		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  2, -1, -1);
+		List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  0,  0,  0);
+		List<Integer> row4 = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+		List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+		List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		board.add(new ArrayList<Integer>(row1));
+		board.add(new ArrayList<Integer>(row2));
+		board.add(new ArrayList<Integer>(row3));
+		board.add(new ArrayList<Integer>(row4));
+		board.add(new ArrayList<Integer>(row5));
+		board.add(new ArrayList<Integer>(row6));
+		board.add(new ArrayList<Integer>(row7));
+		
+		ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+		List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+		List<Integer> row4after = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+		List<Integer> row5after = Arrays.<Integer>asList(10, 11, 12, 13, 14, 15, 16);
+		List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		boardAfter.add(new ArrayList<Integer>(row1after));
+		boardAfter.add(new ArrayList<Integer>(row2after));
+		boardAfter.add(new ArrayList<Integer>(row3after));
+		boardAfter.add(new ArrayList<Integer>(row4after));
+		boardAfter.add(new ArrayList<Integer>(row5after));
+		boardAfter.add(new ArrayList<Integer>(row6after));
+		boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+			.put(BOARD, board)
+			.put(F, ImmutableList.of(1, 2))
+			.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+			.put(EATEN, ImmutableList.of())
+			.put(ARRIVAL, ImmutableList.of(5))
+			.build();
+		
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+			new SetTurn(fId),
+			new Set(BOARD, boardAfter));	
+		
+		assertHacker(move(sId, state, operations));	
 	}
 	
 	@Test
-	public void testMoveWithWrongPiece1(){
-		VerifyMove verifyMove = move(fId, turnOfFoxInOneState, fNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
-	}
+	public void testFoxWantMoveButOutofBoard(){
+		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+		List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+		List<Integer> row4 = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+		List<Integer> row5 = Arrays.<Integer>asList(10, 11, 12, 13, 14, 15, 16);
+		List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		board.add(new ArrayList<Integer>(row1));
+		board.add(new ArrayList<Integer>(row2));
+		board.add(new ArrayList<Integer>(row3));
+		board.add(new ArrayList<Integer>(row4));
+		board.add(new ArrayList<Integer>(row5));
+		board.add(new ArrayList<Integer>(row6));
+		board.add(new ArrayList<Integer>(row7));
 	
-	@Test
-	public void testMoveWithWrongPiece2(){
-		VerifyMove verifyMove = move(fId, turnOfFoxInOneState, sNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
-	}
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+			.put(BOARD, board)
+			.put(F, ImmutableList.of(1, 2))
+			.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+			.put(EATEN, ImmutableList.of())
+			.put(ARRIVAL, ImmutableList.of(5))
+			.build();
 	
-	@Test
-	public void testMoveWithWrongPiece3(){
-		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, fNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
-	}
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+			new SetTurn(fId),
+			new Set(Is_Fox_Move, Yes),
+			new Set(From, "24"),
+			new Set(To, "15"));		
 	
-	@Test
-	public void testMoveWithWrongPiece4(){
-		VerifyMove verifyMove = move(sId, turnOfSheepInOneState, sNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
-	}
-	
-	@Test
-	public void testMoveWithWrongPiece5(){
-		VerifyMove verifyMove = move(sId, turnOfSheepInOneState, fNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
-	}
-	
-	@Test
-	public void testMoveWithWrongPiece6(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, sNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
-	}
-	
-	@Test
-	public void testFoxMoveOutofBoard(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, fMoveOutOfBoard);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
+		assertHacker(move(fId, state, operations));		
 	}
 	
 	@Test
 	public void testSheepMoveOutofBoard(){
-		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sMoveOutOfBoard);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
-	}
+		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+		List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+		List<Integer> row4 = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+		List<Integer> row5 = Arrays.<Integer>asList(10, 11, 12, 13, 14, 15, 16);
+		List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+		List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		board.add(new ArrayList<Integer>(row1));
+		board.add(new ArrayList<Integer>(row2));
+		board.add(new ArrayList<Integer>(row3));
+		board.add(new ArrayList<Integer>(row4));
+		board.add(new ArrayList<Integer>(row5));
+		board.add(new ArrayList<Integer>(row6));
+		board.add(new ArrayList<Integer>(row7));
 	
-	@Test
-	public void testFoxHasToMoveIfCanEat(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, fNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());
-	}
-	
-	@Test
-	public void testTwoFoxMoveAtOneTime(){
-		VerifyMove verifyMove = move(sId, turnOfFoxInOneState, twoFoxForwardMoveAtOneTime);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
-	}
-	
-	@Test
-	public void testTwoSheepMoveAtOneTime(){
-		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, twoSheepMoveAtOneTime);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);	
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
-	}
-	
-	@Test
-	public void testArrivalChangeCurrectly(){
-		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sNormalForwardMove);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());	
-	}
-	
-	@Test
-	public void testArrivalChangeWrong(){
-		VerifyMove verifyMove = move(fId, turnOfSheepInOneState, sArriveButArrivalNotChange);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(verifyMove.getLastMovePlayerId(), verifyDone.getHackerPlayerId());		
+		ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+		List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+		List<Integer> row4after = Arrays.<Integer>asList( 3,  4,  0,  6,  7,  8,  9);
+		List<Integer> row5after = Arrays.<Integer>asList(10, 11, 12, 13, 14, 15, 16);
+		List<Integer> row6after = Arrays.<Integer>asList(-1, 17,  0, 18, 19, -1, -1);
+		List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+		boardAfter.add(new ArrayList<Integer>(row1after));
+		boardAfter.add(new ArrayList<Integer>(row2after));
+		boardAfter.add(new ArrayList<Integer>(row3after));
+		boardAfter.add(new ArrayList<Integer>(row4after));
+		boardAfter.add(new ArrayList<Integer>(row5after));
+		boardAfter.add(new ArrayList<Integer>(row6after));
+		boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+			.put(BOARD, board)
+			.put(F, ImmutableList.of(1, 2))
+			.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+			.put(EATEN, ImmutableList.of())
+			.put(ARRIVAL, ImmutableList.of(5))
+			.build();
+		
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+			new SetTurn(fId),
+			new Set(BOARD, boardAfter));	
+		
+		assertHacker(move(sId, state, operations));	
 	}
 	
 	@Test
 	public void testFoxWonAndEndGame(){	
-		ImmutableMap<String, Object> fWonState = ImmutableMap.<String, Object>builder()
-				.put(TURN, F)
-				.put(BOARD, ImmutableList.of(
-						-1, -1,  0,  0,  0, -1, -1,
-						-1, -1,  0,  0,  2, -1, -1,
-						 0, 11, 20,  0,  0,  0,  0,
-						 0,  0,  0,  0,  0,  15,  0,
-						10,  0,  0, 18,  0,  0, 16,
-						-1, -1,  0,  1, 19, -1, -1,
-						-1, -1,  0, 21, 22, -1, -1))
-				.put(F, ImmutableList.of(1, 2))
-				.put(S, ImmutableList.of(10, 11, 15, 16, 18, 19, 20, 21, 22))
-				.put(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17))
-				.put(ARRIVAL, ImmutableList.of(20))
-				.build();
+		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  0,  2, -1, -1);
+		List<Integer> row3 = Arrays.<Integer>asList( 0, 11, 20,  0,  0,  0,  0);
+		List<Integer> row4 = Arrays.<Integer>asList( 0,  0,  0,  0,  0, 15,  0);
+		List<Integer> row5 = Arrays.<Integer>asList(10,  0,  0, 18,  0,  0, 16);
+		List<Integer> row6 = Arrays.<Integer>asList(-1, -1,  0,  1, 19, -1, -1);
+		List<Integer> row7 = Arrays.<Integer>asList(-1, -1,  0, 21, 22, -1, -1);		
+		board.add(new ArrayList<Integer>(row1));
+		board.add(new ArrayList<Integer>(row2));
+		board.add(new ArrayList<Integer>(row3));
+		board.add(new ArrayList<Integer>(row4));
+		board.add(new ArrayList<Integer>(row5));
+		board.add(new ArrayList<Integer>(row6));
+		board.add(new ArrayList<Integer>(row7));
 		
-		ImmutableList<Operation> fWonOperation = ImmutableList.<Operation>of(
-				new Set(TURN, S),
-				new Set(BOARD, ImmutableList.of(
-						-1, -1,  0,  0,  0, -1, -1,
-						-1, -1,  0,  0,  0, -1, -1,
-						 0, 11, 20,  0,  0,  0,  0,
-						 0,  0,  0,  1,  0,  15,  0,
-						10,  0,  0,  0,  2,  0, 16,
-						-1, -1,  0,  0, 19, -1, -1,
-						-1, -1,  0, 21, 22, -1, -1)),
-				new Set(F, ImmutableList.of(1, 2)),
-				new Set(S, ImmutableList.of(10, 11, 15, 16, 19, 20, 21, 22)),
-				new Set(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17, 18)),
-				new Set(ARRIVAL, ImmutableList.of(20)));
-		
-		VerifyMove verifyMove = move(fId, fWonState, fWonOperation);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());	
+		ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  0,  2, -1, -1);
+		List<Integer> row3after = Arrays.<Integer>asList( 0, 11, 20,  0,  0,  0,  0);
+		List<Integer> row4after = Arrays.<Integer>asList( 0,  0,  0,  1,  0, 15,  0);
+		List<Integer> row5after = Arrays.<Integer>asList(10,  0,  0,  0,  0,  0, 16);
+		List<Integer> row6after = Arrays.<Integer>asList(-1, -1,  0,  0, 19, -1, -1);
+		List<Integer> row7after = Arrays.<Integer>asList(-1, -1,  0, 21, 22, -1, -1);		
+		boardAfter.add(new ArrayList<Integer>(row1after));
+		boardAfter.add(new ArrayList<Integer>(row2after));
+		boardAfter.add(new ArrayList<Integer>(row3after));
+		boardAfter.add(new ArrayList<Integer>(row4after));
+		boardAfter.add(new ArrayList<Integer>(row5after));
+		boardAfter.add(new ArrayList<Integer>(row6after));
+		boardAfter.add(new ArrayList<Integer>(row7after));
+	
+	ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+			.put(Is_Fox_Move, Yes)
+			.put(BOARD, board)
+			.put(F, ImmutableList.of(1, 2))
+			.put(S, ImmutableList.of(10, 11, 15, 16, 18, 19, 20, 21, 22))
+			.put(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17))
+			.put(ARRIVAL, ImmutableList.of(20))
+			.build();
+	//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+	ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+			new SetTurn(sId),
+			new Delete(Is_Fox_Move),
+			new Set(BOARD, boardAfter),
+			new Set(S, ImmutableList.of(10, 11, 15, 16, 19, 20, 21, 22)),
+			new Set(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17, 18)));
+			assertMoveOk(move(fId, state, operations));	
 	}
 	
 	@Test
 	public void testSheepWonAndEndGame(){	
-		ImmutableMap<String, Object> sWonState = ImmutableMap.<String, Object>builder()
-				.put(TURN, F)
-				.put(BOARD, ImmutableList.of(
-						-1, -1,  3,  5, 12, -1, -1,
-						-1, -1,  4,  9,  7, -1, -1,
-						 0, 11, 20, 15,  0,  14,  0,
-						 0,  0,  1,  0,  2,  0, 17,
-						10,  0,  0,  0,  0,  0,  0,
-						-1, -1,  0,  0,  0, -1, -1,
-						-1, -1,  0,  0, 22, -1, -1))
-				.put(F, ImmutableList.of(1, 2))
-				.put(S, ImmutableList.of(3, 4, 5, 7, 9, 10, 12, 14, 15, 17, 20, 22))
-				.put(EATEN, ImmutableList.of(6, 8, 11, 13, 16, 18, 19, 21))
-				.put(ARRIVAL, ImmutableList.of(3, 5, 12, 4, 9, 7, 20, 15))
-				.build();
+		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  3,  5, 12, -1, -1);
+		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  4,  9,  7, -1, -1);
+		List<Integer> row3 = Arrays.<Integer>asList( 0, 11, 20, 15,  0, 14,  0);
+		List<Integer> row4 = Arrays.<Integer>asList( 0,  0,  1,  0,  2,  0, 17);
+		List<Integer> row5 = Arrays.<Integer>asList(10,  0,  0,  0,  0,  0,  0);
+		List<Integer> row6 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row7 = Arrays.<Integer>asList(-1, -1,  0,  0, 22, -1, -1);		
+		board.add(new ArrayList<Integer>(row1));
+		board.add(new ArrayList<Integer>(row2));
+		board.add(new ArrayList<Integer>(row3));
+		board.add(new ArrayList<Integer>(row4));
+		board.add(new ArrayList<Integer>(row5));
+		board.add(new ArrayList<Integer>(row6));
+		board.add(new ArrayList<Integer>(row7));
 		
-		ImmutableList<Operation> sWonOperation = ImmutableList.<Operation>of(
-				new Set(TURN, S),
-				new Set(BOARD, ImmutableList.of(
-						-1, -1,  3,  5, 12, -1, -1,
-						-1, -1,  4,  9,  7, -1, -1,
-						 0, 11, 20, 15, 14,  0,  0,
-						 0,  0,  1,  0,  2,  0, 17,
-						10,  0,  0,  0,  0,  0,  0,
-						-1, -1,  0,  0,  0, -1, -1,
-						-1, -1,  0,  0, 22, -1, -1)),
-				new Set(F, ImmutableList.of(1, 2)),
-				new Set(S, ImmutableList.of(3, 4, 5, 7, 9, 10, 12, 14, 15, 17, 20, 22)),
-				new Set(EATEN, ImmutableList.of(6, 8, 11, 13, 16, 18, 19, 21)),
-				new Set(ARRIVAL, ImmutableList.of(3, 5, 12, 4, 9, 7, 20, 15, 14)));
+		ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+		List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  3,  5, 12, -1, -1);
+		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  4,  9,  7, -1, -1);
+		List<Integer> row3after = Arrays.<Integer>asList( 0, 11, 20, 15, 14,  0,  0);
+		List<Integer> row4after = Arrays.<Integer>asList( 0,  0,  0,  1,  0, 15,  0);
+		List<Integer> row5after = Arrays.<Integer>asList(10,  0,  0,  0,  0,  0,  0);
+		List<Integer> row6after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+		List<Integer> row7after = Arrays.<Integer>asList(-1, -1,  0,  0, 22, -1, -1);		
+		boardAfter.add(new ArrayList<Integer>(row1after));
+		boardAfter.add(new ArrayList<Integer>(row2after));
+		boardAfter.add(new ArrayList<Integer>(row3after));
+		boardAfter.add(new ArrayList<Integer>(row4after));
+		boardAfter.add(new ArrayList<Integer>(row5after));
+		boardAfter.add(new ArrayList<Integer>(row6after));
+		boardAfter.add(new ArrayList<Integer>(row7after));
+	
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+			.put(BOARD, board)
+			.put(F, ImmutableList.of(1, 2))
+			.put(S, ImmutableList.of(3, 4, 5, 7, 9, 10, 12, 14, 15, 17, 20, 22))
+			.put(EATEN, ImmutableList.of(6, 8, 11, 13, 16, 18, 19, 21))
+			.put(ARRIVAL, ImmutableList.of(3, 5, 12, 4, 9, 7, 20, 15))
+			.build();
 		
-		VerifyMove verifyMove = move(fId, sWonState, sWonOperation);
-		VerifyMoveDone verifyDone = new GameLogic().verify(verifyMove);
-		assertEquals(0, verifyDone.getHackerPlayerId());	
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+			new SetTurn(fId),
+			new Set(BOARD, boardAfter));
+			new Set(ARRIVAL, ImmutableList.of(3, 5, 12, 4, 9, 7, 20, 14, 15));
+			
+		assertMoveOk(move(sId, state, operations));	
+		
 	}
 }
