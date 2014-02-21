@@ -48,7 +48,7 @@ public class GameLogicTest {
 	*   Is_Fox_Move:Yes, Is_Fox_Eat:Yes, From, To, Board, F, S, EATEN, ARRIVAL
 	* When we send operations on these keys, it will always be in the above order.
 	*/		
-	private static final String PLAYER_ID = "PLAYER_ID";
+	private static final String PLAYER_ID = "playerId";
 	private final int fId = 0;
 	private final int sId = 1;
 	private final String TURN = "TURN";
@@ -187,8 +187,8 @@ public class GameLogicTest {
 		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
 				new SetTurn(fId),
 				new Set(Is_Fox_Move, Yes),
-				new Set(From, "13"),
-				new Set(To, "03"));
+				new Set(From, "24"),
+				new Set(To, "23"));
 						
 		assertMoveOk(move(fId, state, operations));
 		assertHacker(move(sId, state, operations));	
@@ -230,6 +230,8 @@ public class GameLogicTest {
 		
 		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
 				.put(Is_Fox_Move, Yes)
+				.put(From, "13")
+				.put(To, "23")
 				.put(BOARD, board)
 				.put(F, ImmutableList.of(1, 2))
 				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
@@ -247,7 +249,7 @@ public class GameLogicTest {
 }
 	
 	@Test
-	public void testFox2DoNormalBackwardMoveInRightState(){
+	public void testFoxDoNormalBackwardMoveInRightState(){
 			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
 			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
 			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
@@ -283,6 +285,8 @@ public class GameLogicTest {
 		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
 				.put(Is_Fox_Move, Yes)
 				.put(BOARD, board)
+				.put(From, "13")
+				.put(To, "03")
 				.put(F, ImmutableList.of(1, 2))
 				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
 				.put(EATEN, ImmutableList.of())
@@ -334,6 +338,8 @@ public class GameLogicTest {
 		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
 				.put(Is_Fox_Move, Yes)
 				.put(BOARD, board)
+				.put(From, "13")
+				.put(To, "02")
 				.put(F, ImmutableList.of(1, 2))
 				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
 				.put(EATEN, ImmutableList.of())
@@ -405,7 +411,7 @@ public class GameLogicTest {
 			List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
 			List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
 			List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  0,  0,  0,  0);
-			List<Integer> row4after = Arrays.<Integer>asList( 3,  4,  0,  0,  7,  8,  9);
+			List<Integer> row4after = Arrays.<Integer>asList( 3,  4, 12,  0,  7,  8,  9);
 			List<Integer> row5after = Arrays.<Integer>asList(10, 11,  2, 13, 14, 15, 16);
 			List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
 			List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
@@ -418,8 +424,10 @@ public class GameLogicTest {
 			boardAfter.add(new ArrayList<Integer>(row7after));
 		
 		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
-				.put(Is_Fox_Move, Yes)
+				.put(Is_Fox_Eat, Yes)
 				.put(BOARD, board)
+				.put(From, "24")
+				.put(To, "42")
 				.put(F, ImmutableList.of(1, 2))
 				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
 				.put(EATEN, ImmutableList.of())
@@ -428,10 +436,11 @@ public class GameLogicTest {
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
 		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
 				new SetTurn(sId),
-				new Delete(Is_Fox_Move),
+				new Delete(Is_Fox_Eat),
 				new Set(BOARD, boardAfter),
 				new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
-				new Set(EATEN, ImmutableList.of(6)));
+				new Set(EATEN, ImmutableList.of(6)),
+				new Set(ARRIVAL, ImmutableList.of(5)));
 		
 		assertMoveOk(move(fId, state, operations));
 }
@@ -473,6 +482,8 @@ public class GameLogicTest {
 		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
 				.put(Is_Fox_Move, Yes)
 				.put(BOARD, board)
+				.put(From, "24")
+				.put(To, "44")
 				.put(F, ImmutableList.of(1, 2))
 				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
 				.put(EATEN, ImmutableList.of())
@@ -525,6 +536,8 @@ public class GameLogicTest {
 		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
 				.put(Is_Fox_Move, Yes)
 				.put(BOARD, board)
+				.put(From, "24")
+				.put(To, "42")
 				.put(F, ImmutableList.of(1, 2))
 				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
 				.put(EATEN, ImmutableList.of())
@@ -568,8 +581,8 @@ public class GameLogicTest {
 		
 		ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
 		List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
-		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
-		List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  6,  2,  0,  0);
+		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  2, -1, -1);
+		List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  6,  0,  0,  0);
 		List<Integer> row4after = Arrays.<Integer>asList( 3,  4, 12,  0,  7,  8,  9);
 		List<Integer> row5after = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
 		List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
@@ -593,8 +606,10 @@ public class GameLogicTest {
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
 		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
 			new SetTurn(fId),
+			new Set(From, "33"),
+			new Set(To, "23"),
 			new Set(BOARD, boardAfter),
-			new Set(ARRIVAL, ImmutableList.of(6)));
+			new Set(ARRIVAL, ImmutableList.of(5, 6)));
 		
 		assertMoveOk(move(sId, state, operations));
 	}
@@ -619,8 +634,8 @@ public class GameLogicTest {
 		
 		ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
 		List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
-		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
-		List<Integer> row3after = Arrays.<Integer>asList( 0,  5,  0,  0,  2,  0,  0);
+		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  2, -1, -1);
+		List<Integer> row3after = Arrays.<Integer>asList( 0,  5,  0,  0,  0,  0,  0);
 		List<Integer> row4after = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
 		List<Integer> row5after = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
 		List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
@@ -644,6 +659,8 @@ public class GameLogicTest {
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
 		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
 			new SetTurn(fId),
+			new Set(From, "22"),
+			new Set(To, "21"),
 			new Set(BOARD, boardAfter),
 			new Set(ARRIVAL, ImmutableList.of()));	
 		
@@ -820,8 +837,10 @@ public class GameLogicTest {
 		boardAfter.add(new ArrayList<Integer>(row7after));
 	
 	ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
-			.put(Is_Fox_Move, Yes)
+			.put(Is_Fox_Eat, Yes)
 			.put(BOARD, board)
+			.put(From, "53")
+			.put(To, "33")
 			.put(F, ImmutableList.of(1, 2))
 			.put(S, ImmutableList.of(10, 11, 15, 16, 18, 19, 20, 21, 22))
 			.put(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17))
@@ -830,10 +849,12 @@ public class GameLogicTest {
 	//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
 	ImmutableList<Operation> operations = ImmutableList.<Operation>of(
 			new SetTurn(sId),
-			new Delete(Is_Fox_Move),
+			new Delete(Is_Fox_Eat),
 			new Set(BOARD, boardAfter),
 			new Set(S, ImmutableList.of(10, 11, 15, 16, 19, 20, 21, 22)),
-			new Set(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17, 18)));
+			new Set(EATEN, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 17, 18)),
+			new Set(ARRIVAL, ImmutableList.of(20)),
+			new EndGame(fId));
 			assertMoveOk(move(fId, state, operations));	
 	}
 	
@@ -859,7 +880,7 @@ public class GameLogicTest {
 		List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  3,  5, 12, -1, -1);
 		List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  4,  9,  7, -1, -1);
 		List<Integer> row3after = Arrays.<Integer>asList( 0, 11, 20, 15, 14,  0,  0);
-		List<Integer> row4after = Arrays.<Integer>asList( 0,  0,  0,  1,  0, 15,  0);
+		List<Integer> row4after = Arrays.<Integer>asList( 0,  0,  1,  0,  2,  0, 17);
 		List<Integer> row5after = Arrays.<Integer>asList(10,  0,  0,  0,  0,  0,  0);
 		List<Integer> row6after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
 		List<Integer> row7after = Arrays.<Integer>asList(-1, -1,  0,  0, 22, -1, -1);		
@@ -881,10 +902,12 @@ public class GameLogicTest {
 		
 		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
 			new SetTurn(fId),
-			new Set(BOARD, boardAfter));
-			new Set(ARRIVAL, ImmutableList.of(3, 5, 12, 4, 9, 7, 20, 14, 15));
+			new Set(From, "25"),
+			new Set(To, "24"),
+			new Set(BOARD, boardAfter),
+			new Set(ARRIVAL, ImmutableList.of(3, 5, 12, 4, 9, 7, 20, 15, 14)),
+			new EndGame(sId));
 			
-		assertMoveOk(move(sId, state, operations));	
-		
+		assertMoveOk(move(sId, state, operations));			
 	}
 }
