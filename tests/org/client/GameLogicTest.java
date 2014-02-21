@@ -390,7 +390,118 @@ public class GameLogicTest {
 		assertMoveOk(move(fId, state, operations));		
 }	
 	@Test
-	public void testFox2DoEatMoveInRightState(){
+	public void testFox2DoEatMoveInRightStateButCanNotContinullyEat(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 3,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 0,  4, 12,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+			
+			ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3after = Arrays.<Integer>asList( 3,  0,  5,  0,  0,  0,  0);
+			List<Integer> row4after = Arrays.<Integer>asList( 0,  4, 12,  0,  7,  8,  9);
+			List<Integer> row5after = Arrays.<Integer>asList(10, 11,  2, 13, 14, 15, 16);
+			List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			boardAfter.add(new ArrayList<Integer>(row1after));
+			boardAfter.add(new ArrayList<Integer>(row2after));
+			boardAfter.add(new ArrayList<Integer>(row3after));
+			boardAfter.add(new ArrayList<Integer>(row4after));
+			boardAfter.add(new ArrayList<Integer>(row5after));
+			boardAfter.add(new ArrayList<Integer>(row6after));
+			boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(Is_Fox_Eat, Yes)
+				.put(BOARD, board)
+				.put(From, "24")
+				.put(To, "42")
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(sId),
+				new Delete(Is_Fox_Eat),
+				new Set(BOARD, boardAfter),
+				new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+				new Set(EATEN, ImmutableList.of(6)),
+				new Set(ARRIVAL, ImmutableList.of(5)));
+		
+		assertMoveOk(move(fId, state, operations));
+}
+	@Test
+	public void testFox2DoEatMoveInRightStateAndCanContinullyEat(){
+			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3 = Arrays.<Integer>asList( 0,  0,  5,  0,  2,  0,  0);
+			List<Integer> row4 = Arrays.<Integer>asList( 3,  4, 12,  6,  7,  8,  9);
+			List<Integer> row5 = Arrays.<Integer>asList(10, 11,  0, 13, 14, 15, 16);
+			List<Integer> row6 = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7 = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			board.add(new ArrayList<Integer>(row1));
+			board.add(new ArrayList<Integer>(row2));
+			board.add(new ArrayList<Integer>(row3));
+			board.add(new ArrayList<Integer>(row4));
+			board.add(new ArrayList<Integer>(row5));
+			board.add(new ArrayList<Integer>(row6));
+			board.add(new ArrayList<Integer>(row7));
+			
+			ArrayList<ArrayList<Integer>> boardAfter = new ArrayList<ArrayList<Integer>>();
+			List<Integer> row1after = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
+			List<Integer> row2after = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
+			List<Integer> row3after = Arrays.<Integer>asList( 0,  0,  5,  0,  0,  0,  0);
+			List<Integer> row4after = Arrays.<Integer>asList( 3,  4, 12,  0,  7,  8,  9);
+			List<Integer> row5after = Arrays.<Integer>asList(10, 11,  2, 13, 14, 15, 16);
+			List<Integer> row6after = Arrays.<Integer>asList(-1, -1, 17, 18, 19, -1, -1);
+			List<Integer> row7after = Arrays.<Integer>asList(-1, -1, 20, 21, 22, -1, -1);		
+			boardAfter.add(new ArrayList<Integer>(row1after));
+			boardAfter.add(new ArrayList<Integer>(row2after));
+			boardAfter.add(new ArrayList<Integer>(row3after));
+			boardAfter.add(new ArrayList<Integer>(row4after));
+			boardAfter.add(new ArrayList<Integer>(row5after));
+			boardAfter.add(new ArrayList<Integer>(row6after));
+			boardAfter.add(new ArrayList<Integer>(row7after));
+		
+		ImmutableMap<String, Object> state = ImmutableMap.<String, Object>builder()
+				.put(Is_Fox_Eat, Yes)
+				.put(BOARD, board)
+				.put(From, "24")
+				.put(To, "42")
+				.put(F, ImmutableList.of(1, 2))
+				.put(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+				.put(EATEN, ImmutableList.of())
+				.put(ARRIVAL, ImmutableList.of(5))
+				.build();
+		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
+		ImmutableList<Operation> operations = ImmutableList.<Operation>of(
+				new SetTurn(fId),
+				new Delete(Is_Fox_Eat),
+				new Set(BOARD, boardAfter),
+				new Set(S, ImmutableList.of(3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+				new Set(EATEN, ImmutableList.of(6)),
+				new Set(ARRIVAL, ImmutableList.of(5)));
+		
+		assertMoveOk(move(fId, state, operations));
+}
+	
+	@Test
+	public void testFox2DoEatMoveInRightStateButWrongContinuelyEat(){
 			ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
 			List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
 			List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  1,  0, -1, -1);
@@ -442,7 +553,7 @@ public class GameLogicTest {
 				new Set(EATEN, ImmutableList.of(6)),
 				new Set(ARRIVAL, ImmutableList.of(5)));
 		
-		assertMoveOk(move(fId, state, operations));
+		assertHacker(move(fId, state, operations));
 }
 	
 	@Test

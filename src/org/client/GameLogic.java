@@ -59,11 +59,8 @@ public class GameLogic {
 	}
   	
 	private List<Operation> foxNormalMove(State lastState, List<Operation> lastMove) {
-		System.out.println("!!!@@@###$$$");
 		check(!lastState.Is_Fox_Move());
-		System.out.println("123456");
 		check(!lastState.Is_Fox_Eat());
-		System.out.println("!!!@@@###$$$");
 		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
@@ -83,11 +80,7 @@ public class GameLogic {
 		check((Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 1) ||
 				(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 1) || 
 				(Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 0));
-		
-		System.out.println(checkAPositionIsFox(from, lastState));
-		System.out.println(checkFoxCanMove(from, lastState));
 		if(checkAPositionIsFox(from, lastState) && checkFoxCanMove(from, lastState)){
-			System.out.println("!!!!!!!");
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 			operations.add(new Set(Is_Fox_Move, Yes));
 			operations.add(new Set(From, from));
@@ -116,14 +109,6 @@ public class GameLogic {
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();	
 		String anotherFox = findAnotherFox(from, lastState);
 		
-		System.out.println(to);
-		System.out.println(lastB);
-		System.out.println(checkAPositionIsFox(from, lastState));
-		System.out.println(checkAPositionIsEmpty(0 ,3 , lastState));
-		System.out.println(lastB);
-		System.out.println(!checkFoxCanEat(from, lastState));
-		System.out.println(!checkFoxCanEat(anotherFox, lastState));
-		
 		if(checkAPositionIsFox(from, lastState) && checkAPositionIsEmpty(to, lastState)
 				&& !checkFoxCanEat(from, lastState) && !checkFoxCanEat(anotherFox, lastState)){
 			
@@ -136,8 +121,6 @@ public class GameLogic {
 			operations.add(new SetTurn(lastState.getPlayerIds().get(turnOfColor.getOppositeColor().ordinal())));					
 			operations.add(new Delete(Is_Fox_Move));
 			operations.add(new Set(Board, lastB));
-			
-			System.out.println(lastB);
 			
 		}else{
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
@@ -168,7 +151,6 @@ public class GameLogic {
 		check((Math.abs(xfrom-xto) == 2 && Math.abs(yfrom - yto) == 2) ||
 				(Math.abs(xfrom-xto) == 2 && Math.abs(yfrom - yto) == 0) || 
 				(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 2));
-		System.out.println("!!!@@@###$$$");
 		if(checkAPositionIsFox(from, lastState) && checkFoxCanEat(from, lastState)){
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 			operations.add(new Set(Is_Fox_Eat, Yes));
@@ -200,7 +182,6 @@ public class GameLogic {
 		String to = lastState.getTo();		
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
 		ArrayList<ArrayList<Integer>> newB = lastB;
-		System.out.println(lastB.get(2).get(4) + "1111111");
 		
 		List<Integer> lastS = lastState.getSheep();
 		
@@ -213,61 +194,32 @@ public class GameLogic {
 		
 		int xto = Integer.valueOf(to) / 10;
 		int yto = Integer.valueOf(to) % 10;
-		System.out.println(xfrom + "&" + yfrom + "&" + xto + "&" + yto);
 		List<Integer> diedS = ImmutableList.<Integer>of(lastB.get((xfrom + xto) / 2).get((yfrom + yto) / 2));
 		
 		List<Integer> newS = subtract(lastS, diedS);
 		List<Integer> newEaten = concat(lastEaten, diedS);
 		List<Integer> newArrival = lastArrival;
-		
-		System.out.println("!!!!!!!!!!!!");
-		System.out.println(newEaten);
-		System.out.println(lastArrival);
 		if(lastArrival.contains(lastB.get((xfrom + xto) / 2).get((yfrom + yto) / 2))){
 			newArrival = subtract(lastArrival, diedS);
 		}
-		System.out.println("!!!!!!!!!!!2");
-		System.out.println(from + "+" + to);
-		System.out.println(checkAPositionIsFox(from, lastState));
 		if(checkAPositionIsFox(from, lastState) && checkFoxCanEat(from, lastState)){
 			newB.get(xto).set(yto, lastB.get(xfrom).get(yfrom));
-			System.out.println(lastB.get(2).get(4) + ")))))))))))");
-			System.out.println(newB.get(4).get(2));
 			newB.get(xfrom).set(yfrom, 0);
-			System.out.println(lastB.get(xto).get(yto) + "%%%%%%%%%%");
 			newB.get((xfrom + xto) / 2).set((yfrom + yto) / 2, 0);
-			System.out.println(lastB.get(xfrom).get(yfrom) + "%%%%%%%%%%");
-			System.out.println(xfrom + "&&&"+ yfrom);
-			System.out.println(lastB.get(xfrom).get(yfrom) + "~~~~~~~");
-			System.out.println(newB.get(4).get(2) + "|||||||||");
-			System.out.println(checkFoxCanEat(to, lastB));
 			if(checkFoxCanEat(to, newB)){
-				System.out.println(to);
-				System.out.println("********************");
-				System.out.println(newB);
 				operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
-				System.out.println(lastState.getPlayerId(turnOfColor));
 				operations.add(new Delete(Is_Fox_Eat));
 			}else{
 				operations.add(new SetTurn(lastState.getPlayerIds().get(turnOfColor.getOppositeColor().ordinal())));
 				operations.add(new Delete(Is_Fox_Eat));
 			}
-			System.out.println("+++++++++++");
 			operations.add(new Set(Board, newB));
 			operations.add(new Set(S, newS));
 			operations.add(new Set(EATEN, newEaten));
 			operations.add(new Set(ARRIVAL, newArrival));
 			
-			System.out.println(newB);
-			System.out.println(newS);
-			System.out.println(newEaten);
-			System.out.println(newArrival);
-			System.out.println("!@#$%^&*()");
-			
 			if(getHowManySheepHaveBeenEaten(newEaten) >= 12){
-				System.out.println("((((((((((((((((");
 				operations.add(new EndGame(lastState.getPlayerId(turnOfColor)));
-				System.out.println(lastState.getPlayerId(turnOfColor));
 			}
 		}
 		return operations;
@@ -286,11 +238,9 @@ public class GameLogic {
 		// 4) new Set(ARRIVAL, ...);
 	    // AND: if 9 sheep arrives at the paddock, then the game ends!
 	    // Let's determine just by looking at the lastState.
-		System.out.println("!!!!!!!");
 		Set setFrom = (Set) lastMove.get(1);
 		Set setTo = (Set) lastMove.get(2);
 		String from = (String) setFrom.getValue();
-		System.out.println(from);
 		String to = (String) setTo.getValue();
 		
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
@@ -308,22 +258,17 @@ public class GameLogic {
 
 		List<Integer> newArrival = lastArrival;
 		List<Integer> leaveSheep = ImmutableList.<Integer>of(lastB.get(xfrom).get(yfrom));
-		System.out.println(leaveSheep.size());
 		if(((xfrom >= 0 && xfrom <= 2 && yfrom >= 0 && yfrom <= 6) 
 				|| (xfrom >= 5 && xfrom <= 6 && yfrom >= 0 && yfrom <= 6)
 				|| (xfrom >= 3 && xfrom <= 6 && yfrom >= 2 && yfrom <= 4)) && (xto >= 0 && xto <= 2 && yto >= 2 && yto <= 4)){
-			System.out.println(xto + "%%%" + yto);
 			newArrival = concat(newArrival, leaveSheep);
-			System.out.println(newArrival);
 		}
 		if((xfrom >= 0 && xfrom <= 2 && yfrom >= 2 && yfrom <= 4) && ((xto >= 0 && xto <= 2 && yto >= 0 && yto <= 6) 
 				|| (xto >= 5 && xto <= 6 && yto >= 0 && yto <= 6)
 				|| (xto >= 3 && xto <= 6 && yto >= 2 && yto <= 4))){
 				newArrival = subtract(lastArrival, leaveSheep);
 		}
-		System.out.println("@@@@@@@@@@");
 		if(checkSheepCanMove(from, lastState)){
-			System.out.println("@@@@@@@@@@");
 			newB.get(xto).set(yto, lastB.get(xfrom).get(yfrom));
 			newB.get(xfrom).set(yfrom, 0);
 			operations.add(new SetTurn(lastState.getPlayerIds().get(turnOfColor.getOppositeColor().ordinal())));
@@ -331,16 +276,9 @@ public class GameLogic {
 			operations.add(new Set(To, to));
 			operations.add(new Set(Board, newB));
 			operations.add(new Set(ARRIVAL, newArrival));
-			
-			System.out.println(from);
-			System.out.println(to);
-			System.out.println(newB);
-			System.out.println(newArrival);
-			
-			
+
 			if(getHowManySheepHaveBeenArrived(newArrival) == 9){
 				operations.add(new EndGame(lastState.getPlayerId(turnOfColor)));
-				System.out.println(lastState.getPlayerId(turnOfColor));
 			}
 		}
 		return operations;
