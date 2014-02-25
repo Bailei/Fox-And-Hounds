@@ -6,5 +6,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="libs/guava-gwt-16.0.1.jar"/>
 	<classpathentry kind="lib" path="/Applications/eclipse/plugins/guava-16.0.1.jar"/>
+	<classpathentry kind="lib" path="/Applications/eclipse/plugins/mockito-all-1.9.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

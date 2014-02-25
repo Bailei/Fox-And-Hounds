@@ -1,4 +1,5 @@
 eclipse.preferences.version=1
 encoding//src/org/client/GameApi.java=UTF-8
 encoding//src/org/client/GameLogic.java=UTF-8
+encoding//src/org/client/GamePresenter.java=UTF-8
 encoding//tests/org/client/GameLogicTest.java=UTF-8
