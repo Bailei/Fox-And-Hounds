@@ -30,6 +30,8 @@ public class GameLogic {
 	private static final String S = "S";
 	private static final String Is_Fox_Move = "Is_Fox_Move";
 	private static final String Is_Fox_Eat = "Is_Fox_Eat";
+	private static final String Fox_Move = "Fox_Move";
+	private static final String Fox_Eat = "Fox_Eat";	
 	private static final String Yes = "Yes";
 	private static final String Board = "Board";
 	private static final String EATEN = "EATEN";
@@ -58,7 +60,7 @@ public class GameLogic {
 	    }
 	}
   	
-	private List<Operation> foxNormalMove(State lastState, List<Operation> lastMove) {
+	List<Operation> foxNormalMove(State lastState, List<Operation> lastMove) {
 		check(!lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
 		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
@@ -85,13 +87,15 @@ public class GameLogic {
 			operations.add(new Set(Is_Fox_Move, Yes));
 			operations.add(new Set(From, from));
 			operations.add(new Set(To, to));
+			operations.add(new Set(Fox_Move, Yes));
+			operations.add(new Delete(Fox_Eat));
 		}else{
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		}
 		return operations;
 	}
 
-	private List<Operation> doFoxNormalMove(State lastState, List<Operation> lastMove) {
+	List<Operation> doFoxNormalMove(State lastState, List<Operation> lastMove) {
 		check(lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
@@ -128,7 +132,7 @@ public class GameLogic {
 		return operations;
 	}
 
-	private List<Operation> foxEatMove(State lastState, List<Operation> lastMove) {
+	List<Operation> foxEatMove(State lastState, List<Operation> lastMove) {
 		check(!lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
@@ -156,13 +160,15 @@ public class GameLogic {
 			operations.add(new Set(Is_Fox_Eat, Yes));
 			operations.add(new Set(From, from));
 			operations.add(new Set(To, to));
+			operations.add(new Set(Fox_Eat, Yes));
+			operations.add(new Delete(Fox_Move));
 		}else{
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		}
 		return operations;
 	}
 
-	private List<Operation> doFoxEatMove(State lastState, List<Operation> lastMove) {
+	List<Operation> doFoxEatMove(State lastState, List<Operation> lastMove) {
 		check(!lastState.Is_Fox_Move());
 		check(lastState.Is_Fox_Eat());
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
@@ -183,19 +189,16 @@ public class GameLogic {
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
 		ArrayList<ArrayList<Integer>> newB = lastB;
 		
-		List<Integer> lastS = lastState.getSheep();
-		
+		List<Integer> lastS = lastState.getSheep();		
 		List<Integer> lastEaten = lastState.getEATEN();
-		
 		List<Integer> lastArrival = lastState.getARRIVAL();
 		
 		int xfrom = Integer.valueOf(from) / 10;
-		int yfrom = Integer.valueOf(from) % 10;
-		
+		int yfrom = Integer.valueOf(from) % 10;		
 		int xto = Integer.valueOf(to) / 10;
 		int yto = Integer.valueOf(to) % 10;
-		List<Integer> diedS = ImmutableList.<Integer>of(lastB.get((xfrom + xto) / 2).get((yfrom + yto) / 2));
 		
+		List<Integer> diedS = ImmutableList.<Integer>of(lastB.get((xfrom + xto) / 2).get((yfrom + yto) / 2));		
 		List<Integer> newS = subtract(lastS, diedS);
 		List<Integer> newEaten = concat(lastEaten, diedS);
 		List<Integer> newArrival = lastArrival;
@@ -266,7 +269,7 @@ public class GameLogic {
 		if((xfrom >= 0 && xfrom <= 2 && yfrom >= 2 && yfrom <= 4) && ((xto >= 0 && xto <= 2 && yto >= 0 && yto <= 6) 
 				|| (xto >= 5 && xto <= 6 && yto >= 0 && yto <= 6)
 				|| (xto >= 3 && xto <= 6 && yto >= 2 && yto <= 4))){
-				newArrival = subtract(lastArrival, leaveSheep);
+			newArrival = subtract(lastArrival, leaveSheep);
 		}
 		if(checkSheepCanMove(from, lastState)){
 			newB.get(xto).set(yto, lastB.get(xfrom).get(yfrom));
@@ -284,7 +287,7 @@ public class GameLogic {
 		return operations;
 	}
 		
-	private boolean checkFoxCanEat(String st, State lastState) {
+	boolean checkFoxCanEat(String st, State lastState) {
 		int x = Integer.valueOf(st) / 10;
 		int y = Integer.valueOf(st) % 10;
 		
@@ -326,7 +329,7 @@ public class GameLogic {
 	}
 	
 	
-	private boolean checkFoxCanEat(String st, ArrayList<ArrayList<Integer>> newBoard) {
+	boolean checkFoxCanEat(String st, ArrayList<ArrayList<Integer>> newBoard) {
 		int x = Integer.valueOf(st) / 10;
 		int y = Integer.valueOf(st) % 10;
 		
@@ -366,7 +369,8 @@ public class GameLogic {
 			}
 		}
 	}
-	private boolean checkFoxCanMove(String st, State lastState) {
+	
+	boolean checkFoxCanMove(String st, State lastState) {
 		int x = Integer.valueOf(st) / 10;
 		int y = Integer.valueOf(st) % 10;
 		
@@ -407,7 +411,7 @@ public class GameLogic {
 		}
 	}
 	
-	private boolean checkSheepCanMove(String st, State lastState){
+	boolean checkSheepCanMove(String st, State lastState){
 		int x = Integer.valueOf(st) / 10;
 		int y = Integer.valueOf(st) % 10;
 		
@@ -422,7 +426,7 @@ public class GameLogic {
 		}
 	}
 	
-	private boolean checkAPositionIsFox(String st, State lastState){
+	boolean checkAPositionIsFox(String st, State lastState){
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();	
 		int x = Integer.valueOf(st) / 10;
 		int y = Integer.valueOf(st) % 10;	
@@ -448,28 +452,36 @@ public class GameLogic {
 		return true;
 	}
 */
+	boolean checkAPositionIsSheep(String st, State lastState){
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();	
+		int x = Integer.valueOf(st) / 10;
+		int y = Integer.valueOf(st) % 10;
+		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB.get(x).get(y) >= 3 && lastB.get(x).get(y) <= 22)
+			return true;
+		return false;
+	}
 	
-	private boolean checkAPositionIsSheep(int x, int y, State lastState){
+	boolean checkAPositionIsSheep(int x, int y, State lastState){
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
 		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB.get(x).get(y) >= 3 && lastB.get(x).get(y) <= 22)
 			return true;
 		return false;
 	}
 	
-	private boolean checkAPositionIsSheep(int x, int y, ArrayList<ArrayList<Integer>> newBoard){
+	boolean checkAPositionIsSheep(int x, int y, ArrayList<ArrayList<Integer>> newBoard){
 		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && newBoard.get(x).get(y) >= 3 && newBoard.get(x).get(y) <= 22)
 			return true;
 		return false;
 	}
 	
-	private boolean checkAPositionIsEmpty(int x, int y, ArrayList<ArrayList<Integer>> newBoard){
+	boolean checkAPositionIsEmpty(int x, int y, ArrayList<ArrayList<Integer>> newBoard){
 		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && newBoard.get(x).get(y) == 0){
 			return true;
 		}
 		return false;
 	}
 	
-	private boolean checkAPositionIsEmpty(String st, State lastState){
+	boolean checkAPositionIsEmpty(String st, State lastState){
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
 		int x = Integer.valueOf(st) / 10;
 		int y = Integer.valueOf(st) % 10;
@@ -479,14 +491,14 @@ public class GameLogic {
 		return false;
 	}
 	
-	private boolean checkAPositionIsEmpty(int x, int y, State lastState){
+	boolean checkAPositionIsEmpty(int x, int y, State lastState){
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
 		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB.get(x).get(y) == 0)
 			return true;
 		return false;
 	}
 
-	private String findAnotherFox(String st, State lastState){
+	String findAnotherFox(String st, State lastState){
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
 		int x = Integer.valueOf(st) / 10;
 		int y = Integer.valueOf(st) % 10;
@@ -505,11 +517,11 @@ public class GameLogic {
 		return anotherSt;
 	}
 	
-	private int getHowManySheepHaveBeenEaten(List<Integer> newEaten){
+	int getHowManySheepHaveBeenEaten(List<Integer> newEaten){
 		return newEaten.size();
 	}
 	
-	private int getHowManySheepHaveBeenArrived(List<Integer> newArrival){
+	int getHowManySheepHaveBeenArrived(List<Integer> newArrival){
 		return newArrival.size();
 	}	
 
@@ -582,7 +594,7 @@ public class GameLogic {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private State gameApiStateToState(Map<String, Object> gameApiState,
+	State gameApiStateToState(Map<String, Object> gameApiState,
 			Color turnOfColor, List<Integer> playerIds){
 		String fromValue = (String)gameApiState.get(From);
 		String toValue = (String)gameApiState.get(To);
@@ -605,7 +617,9 @@ public class GameLogic {
 	        ImmutableList.copyOf(eaten),
 	        ImmutableList.copyOf(arrival),
 	    	fromValue,
-	    	toValue);
+	    	toValue,
+	    	gameApiState.containsKey(Fox_Move),
+	    	gameApiState.containsKey(Fox_Eat));
 	}
 	
 	private void check(boolean val, Object... debugArguments){

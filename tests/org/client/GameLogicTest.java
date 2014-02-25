@@ -55,6 +55,8 @@ public class GameLogicTest {
 	private static final String Is_Fox_Move = "Is_Fox_Move";
 	private static final String Is_Fox_Eat = "Is_Fox_Eat";
 	private static final String Yes = "Yes";
+	private static final String Fox_Move = "Fox_Move";
+	private static final String Fox_Eat = "Fox_Eat";
 	private static final String From = "From";
 	private static final String To = "To";
 	private static final String BOARD = "Board";
@@ -188,7 +190,9 @@ public class GameLogicTest {
 				new SetTurn(fId),
 				new Set(Is_Fox_Move, Yes),
 				new Set(From, "24"),
-				new Set(To, "23"));
+				new Set(To, "23"),
+				new Set(Fox_Move, Yes),
+			 	new Delete(Fox_Eat));
 						
 		assertMoveOk(move(fId, state, operations));
 		assertHacker(move(sId, state, operations));	
@@ -385,7 +389,9 @@ public class GameLogicTest {
 				new SetTurn(fId),
 				new Set(Is_Fox_Eat, Yes),
 				new Set(From, "24"),
-				new Set(To, "42"));		
+				new Set(To, "42"),
+				new Set(Fox_Eat, Yes),
+				new Delete(Fox_Move));		
 		
 		assertMoveOk(move(fId, state, operations));		
 }	
