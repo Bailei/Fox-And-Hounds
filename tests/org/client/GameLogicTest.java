@@ -190,9 +190,7 @@ public class GameLogicTest {
 				new SetTurn(fId),
 				new Set(Is_Fox_Move, Yes),
 				new Set(From, "24"),
-				new Set(To, "23"),
-				new Set(Fox_Move, Yes),
-			 	new Delete(Fox_Eat));
+				new Set(To, "23"));
 						
 		assertMoveOk(move(fId, state, operations));
 		assertHacker(move(sId, state, operations));	
@@ -389,9 +387,7 @@ public class GameLogicTest {
 				new SetTurn(fId),
 				new Set(Is_Fox_Eat, Yes),
 				new Set(From, "24"),
-				new Set(To, "42"),
-				new Set(Fox_Eat, Yes),
-				new Delete(Fox_Move));		
+				new Set(To, "42"));	
 		
 		assertMoveOk(move(fId, state, operations));		
 }	

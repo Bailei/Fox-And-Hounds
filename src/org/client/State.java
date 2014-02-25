@@ -14,8 +14,6 @@ public class State {
 	private final ImmutableList<Integer> playerIds;
 	private boolean Is_Fox_Move;
 	private boolean Is_Fox_Eat;	
-	private boolean Fox_Move;
-	private boolean Fox_Eat;
 	private final String From;
 	private final String To;
 	private final ImmutableList<Integer> Fox;
@@ -26,8 +24,7 @@ public class State {
 	public State(Color turn, ArrayList<ArrayList<Integer>> Board, ImmutableList<Integer> playerIds, 
 			boolean Is_Fox_Move, boolean Is_Fox_Eat,
 			ImmutableList<Integer> Fox, ImmutableList<Integer> Sheep,
-			ImmutableList<Integer> EATEN, ImmutableList<Integer> ARRIVAL, String From, String To,
-			boolean Fox_Move, boolean Fox_Eat) {
+			ImmutableList<Integer> EATEN, ImmutableList<Integer> ARRIVAL, String From, String To) {
 		super();
 		this.turn = checkNotNull(turn);
 		this.Board = checkNotNull(Board);
@@ -42,8 +39,6 @@ public class State {
 		
 		this.Is_Fox_Move = Is_Fox_Move;
 		this.Is_Fox_Eat = Is_Fox_Eat;
-		this.Fox_Move = Fox_Move;
-		this.Fox_Eat = Fox_Eat;
 	}
 	
 	public Color getTurn() {
@@ -85,14 +80,6 @@ public class State {
 	public boolean Is_Fox_Eat(){
 		return Is_Fox_Eat;
 	}	
-	
-	public boolean Fox_Move(){
-		return Fox_Move;
-	}
-	
-	public boolean Fox_Eat(){
-		return Fox_Eat;
-	}
 
 	public String getFrom(){
 		return From;

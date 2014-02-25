@@ -87,15 +87,13 @@ public class GameLogic {
 			operations.add(new Set(Is_Fox_Move, Yes));
 			operations.add(new Set(From, from));
 			operations.add(new Set(To, to));
-			operations.add(new Set(Fox_Move, Yes));
-			operations.add(new Delete(Fox_Eat));
 		}else{
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		}
 		return operations;
 	}
 
-	List<Operation> doFoxNormalMove(State lastState, List<Operation> lastMove) {
+	List<Operation> doFoxNormalMove(State lastState) {
 		check(lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
@@ -160,15 +158,13 @@ public class GameLogic {
 			operations.add(new Set(Is_Fox_Eat, Yes));
 			operations.add(new Set(From, from));
 			operations.add(new Set(To, to));
-			operations.add(new Set(Fox_Eat, Yes));
-			operations.add(new Delete(Fox_Move));
 		}else{
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 		}
 		return operations;
 	}
 
-	List<Operation> doFoxEatMove(State lastState, List<Operation> lastMove) {
+	List<Operation> doFoxEatMove(State lastState) {
 		check(!lastState.Is_Fox_Move());
 		check(lastState.Is_Fox_Eat());
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
@@ -187,7 +183,13 @@ public class GameLogic {
 		String from = lastState.getFrom();
 		String to = lastState.getTo();		
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
-		ArrayList<ArrayList<Integer>> newB = lastB;
+		ArrayList<ArrayList<Integer>> newB = new ArrayList<ArrayList<Integer>>();
+		for(int i=0;i<7;i++) {
+			newB.add(new ArrayList<Integer>());
+			for(int j=0;j<7;j++) {
+				newB.get(i).add(lastB.get(i).get(j));
+			}
+		}
 		
 		List<Integer> lastS = lastState.getSheep();		
 		List<Integer> lastEaten = lastState.getEATEN();
@@ -571,11 +573,11 @@ public class GameLogic {
 		if(lastMove.contains(new Set(Is_Fox_Move, Yes))){
 			return foxNormalMove(lastState, lastMove);
 		}else if(lastMove.contains(new Delete(Is_Fox_Move))){
-			return doFoxNormalMove(lastState, lastMove);
+			return doFoxNormalMove(lastState);
 		}else if(lastMove.contains(new Set(Is_Fox_Eat, Yes))){
 			return foxEatMove(lastState, lastMove);
 		}else if(lastMove.contains(new Delete(Is_Fox_Eat))){
-			return doFoxEatMove(lastState, lastMove);
+			return doFoxEatMove(lastState);
 		}else{
 			return doSheepMove(lastState, lastMove);
 		}
@@ -617,9 +619,7 @@ public class GameLogic {
 	        ImmutableList.copyOf(eaten),
 	        ImmutableList.copyOf(arrival),
 	    	fromValue,
-	    	toValue,
-	    	gameApiState.containsKey(Fox_Move),
-	    	gameApiState.containsKey(Fox_Eat));
+	    	toValue);
 	}
 	
 	private void check(boolean val, Object... debugArguments){
