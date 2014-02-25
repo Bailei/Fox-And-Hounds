@@ -48,11 +48,9 @@ public class GamePresenter {
 		 * The user have to choose two position: from_position, to_position.
 		 * (by calling {@link #finnishedSelectingPosition}; only allowed if selectedPosition.size == 2).
 		 */
-		void chooseNextPositionForSheepToMove(List<String> SelectedPosition, ArrayList<ArrayList<Integer>> board);
+		void chooseNextPositionForSheep(List<String> SelectedPosition, ArrayList<ArrayList<Integer>> board);
 		
-		void chooseNextPositionForFoxToMove(List<String> SelectedPosition, ArrayList<ArrayList<Integer>> board);
-		
-		void chooseNextPositionForFoxToEat(List<String> SelectedPosition, ArrayList<ArrayList<Integer>> board);
+		void chooseNextPositionForFox(List<String> SelectedPosition, ArrayList<ArrayList<Integer>> board);
 	}
 	
 	private final GameLogic gameLogic = new GameLogic();
@@ -66,8 +64,8 @@ public class GamePresenter {
 //	private static final String Is_Fox_Move = "Is_Fox_Move";
 //	private static final String Is_Fox_Eat = "Is_Fox_Eat";
 //	private static final String Yes = "Yes";
-	private static final String From = "From";
-	private static final String To = "To";
+//	private static final String From = "From";
+//	private static final String To = "To";
 	
 	public GamePresenter(View view, Container container){
 		this.view = view;
@@ -97,7 +95,9 @@ public class GamePresenter {
 				turnOfColor = Color.values()[playerIds.indexOf(((SetTurn) operation).getPlayerId())];
 			}
 		}
+		
 		gameState = gameLogic.gameApiStateToState(updateUI.getState(), turnOfColor, playerIds);
+		
 		
 		if(updateUI.isViewer()){
 			view.setViewerState(gameState.getBoard());
@@ -113,38 +113,35 @@ public class GamePresenter {
 		//Must be a player!
 		Color myC = myColor.get();
 		Color opponent = myC.getOppositeColor();
-//		int numberOfEatenSheep = gameState.getEATEN().size();
-//		int numberOfArrivedSheep = gameState.getARRIVAL().size();
+		
 		view.setPlayerState(gameState.getBoard());
 		if(isMyTurn()){
-			if(isFoxTurn()){
+			if(isFoxTurn() && !endGame(gameState)){
 				if(!gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat()){
-					if(gameState.Fox_Move()){
-						chooseNextPositionForFoxToMove();
-					}else if(gameState.Fox_Eat()){
-						chooseNextPositionForFoxToEat();
-					}	
+					chooseNextPositionForFox();
 				}else if(gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat()){
 					MakeDoFoxNormalMove();
-				}else if(gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat()){
+				}else if(!gameState.Is_Fox_Move() && gameState.Is_Fox_Eat()){
 					MakeDoFoxEatMove();
 				}
-			}else if(isMyTurn() && isSheepTurn()){
-				chooseNextPositionForSheepToMove();
+			}else if(isSheepTurn() && !endGame(gameState)){
+				chooseNextPositionForSheep();
 			}
 		}			
 	}
+	private boolean endGame(State gameState){
+		if(gameLogic.getHowManySheepHaveBeenArrived(gameState.getARRIVAL()) == 9
+				||gameLogic.getHowManySheepHaveBeenEaten(gameState.getEATEN()) == 12)
+			return true;
+		return false;
+	}
 	
-	private void chooseNextPositionForSheepToMove() {
-		view.chooseNextPositionForSheepToMove(ImmutableList.copyOf(selectedPosition), gameState.getBoard());
+	private void chooseNextPositionForSheep() {
+		view.chooseNextPositionForSheep(ImmutableList.copyOf(selectedPosition), gameState.getBoard());
 	}
 
-	private void chooseNextPositionForFoxToMove() {
-		view.chooseNextPositionForFoxToMove(ImmutableList.copyOf(selectedPosition), gameState.getBoard());
-	}
-	
-	private void chooseNextPositionForFoxToEat() {
-		view.chooseNextPositionForFoxToEat(ImmutableList.copyOf(selectedPosition), gameState.getBoard());
+	private void chooseNextPositionForFox() {
+		view.chooseNextPositionForFox(ImmutableList.copyOf(selectedPosition), gameState.getBoard());
 	}
 
 	private boolean isMyTurn() {
@@ -169,67 +166,25 @@ public class GamePresenter {
 	 * Choose from_position and to_position from the board for fox
 	 * The view can only call this method if the presenter called {@link View#chooseNextPositionForFoxToMove}
 	 */
-	void positionSelectedForFoxToMove(String st){
+	void positionSelectedForFox(String st){
 		check(isMyTurn() && isFoxTurn() && !gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat());
+		
 		if(gameLogic.getHowManySheepHaveBeenEaten(gameState.getEATEN()) < 12){
 			if(selectedPosition.size() == 0){
 				if(gameLogic.checkAPositionIsFox(st, gameState)
 						&& gameLogic.checkFoxCanMove(st, gameState)){
 					selectedPosition.add(st);
-					chooseNextPositionForFoxToMove();
+					chooseNextPositionForFox();
 				}else{
-					chooseNextPositionForFoxToMove();
+					chooseNextPositionForFox();
 				}	
 			}else if(selectedPosition.size() == 1){
 				if(selectedPosition.contains(st)){
-					chooseNextPositionForFoxToMove();
+					chooseNextPositionForFox();
 				}else if(gameLogic.checkAPositionIsEmpty(st, gameState)){
-					String from = selectedPosition.get(0);
-					int xfrom = Integer.valueOf(from) / 10;
-					int yfrom = Integer.valueOf(from) % 10;		
-					int xto = Integer.valueOf(st) / 10;
-					int yto = Integer.valueOf(st) % 10;
-					if((Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 1) ||
-							(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 1) || 
-							(Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 0))
 						selectedPosition.add(st);
 				}else{
-					chooseNextPositionForFoxToMove();
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Choose from_position and to_position from the board for fox
-	 * The view can only call this method if the presenter called {@link View#chooseNextPositionForFoxToEat}
-	 */
-	void positionSelectedForFoxToEat(String st){
-		check(isMyTurn() && isFoxTurn() && !gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat());
-		if(gameLogic.getHowManySheepHaveBeenEaten(gameState.getEATEN()) < 12){
-			if(selectedPosition.size() == 0){
-				if(gameLogic.checkAPositionIsFox(st, gameState)
-						&& gameLogic.checkFoxCanEat(st, gameState)){
-					selectedPosition.add(st);
-					chooseNextPositionForFoxToEat();
-				}else{
-					chooseNextPositionForFoxToEat();
-				}	
-			}else if(selectedPosition.size() == 1){
-				if(selectedPosition.contains(st)){
-					chooseNextPositionForFoxToEat();
-				}else if(gameLogic.checkAPositionIsEmpty(st, gameState)){
-					String from = selectedPosition.get(0);
-					int xfrom = Integer.valueOf(from) / 10;
-					int yfrom = Integer.valueOf(from) % 10;		
-					int xto = Integer.valueOf(st) / 10;
-					int yto = Integer.valueOf(st) % 10;
-					if((Math.abs(xfrom-xto) == 2 && Math.abs(yfrom - yto) == 2) ||
-							(Math.abs(xfrom-xto) == 2 && Math.abs(yfrom - yto) == 0) || 
-							(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 2))
-						selectedPosition.add(st);
-				}else{
-					chooseNextPositionForFoxToEat();
+					chooseNextPositionForFox();
 				}
 			}
 		}
@@ -239,20 +194,20 @@ public class GamePresenter {
 	 * Choose from_position and to_position from the board for sheep
 	 * The view can only call this method if the presenter called {@link View#chooseNextPositionForSheep}
 	 */
-	void positionSelectedForSheepToMove(String st){
+	void positionSelectedForSheep(String st){
 		check(isMyTurn() && isSheepTurn() && !gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat());
 		if(gameLogic.getHowManySheepHaveBeenArrived(gameState.getARRIVAL()) < 9){
 			if(selectedPosition.size() == 0){
 				if(gameLogic.checkAPositionIsSheep(st, gameState)
 						&& gameLogic.checkFoxCanMove(st, gameState)){
 					selectedPosition.add(st);
-					chooseNextPositionForSheepToMove();
+					chooseNextPositionForSheep();
 				}else{
-					chooseNextPositionForSheepToMove();
+					chooseNextPositionForSheep();
 				}	
 			}else if(selectedPosition.size() == 1){
 				if(selectedPosition.contains(st)){
-					chooseNextPositionForFoxToMove();
+					chooseNextPositionForSheep();
 				}else if(gameLogic.checkAPositionIsEmpty(st, gameState)){
 					String from = selectedPosition.get(0);
 					int xfrom = Integer.valueOf(from) / 10;
@@ -264,7 +219,7 @@ public class GamePresenter {
 							(Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 0))
 						selectedPosition.add(st);
 				}else{
-					chooseNextPositionForSheepToMove();
+					chooseNextPositionForSheep();
 				}
 			}
 		}
@@ -278,23 +233,11 @@ public class GamePresenter {
 		container.sendMakeMove(gameLogic.getMoveInitial(playerIds));
 	}
 	
-	private void MakeDoFoxNormalMove(){
-		List<Operation> operations = Lists.newArrayList();		
-//		operations.add(new SetTurn(gameState.getPlayerId(myColor.get())));
-//		operations.add(new Set(Is_Fox_Move, Yes));
-		operations.add(new Set(From, selectedPosition.get(0)));
-		operations.add(new Set(To, selectedPosition.get(1)));
-		
-		container.sendMakeMove(gameLogic.doFoxNormalMove(gameState, operations));
+	private void MakeDoFoxNormalMove(){		
+		container.sendMakeMove(gameLogic.doFoxNormalMove(gameState));
 	}
 	
 	private void MakeDoFoxEatMove(){
-		List<Operation> operations = Lists.newArrayList();
-//		operations.add(new SetTurn(gameState.getPlayerId(myColor.get())));
-//		operations.add(new Set(Is_Fox_Eat, Yes));
-		operations.add(new Set(From, selectedPosition.get(0)));
-		operations.add(new Set(To, selectedPosition.get(1)));
-		
-		container.sendMakeMove(gameLogic.doFoxEatMove(gameState, operations));
+		container.sendMakeMove(gameLogic.doFoxEatMove(gameState));
 	}	
 }
