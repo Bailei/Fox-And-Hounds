@@ -61,12 +61,6 @@ public class GamePresenter {
 	private State gameState;
 	private List<String> selectedPosition;
 	
-//	private static final String Is_Fox_Move = "Is_Fox_Move";
-//	private static final String Is_Fox_Eat = "Is_Fox_Eat";
-//	private static final String Yes = "Yes";
-//	private static final String From = "From";
-//	private static final String To = "To";
-	
 	public GamePresenter(View view, Container container){
 		this.view = view;
 		this.container = container;

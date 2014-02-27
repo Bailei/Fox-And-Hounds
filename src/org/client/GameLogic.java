@@ -29,9 +29,7 @@ public class GameLogic {
 	private static final String F = "F";
 	private static final String S = "S";
 	private static final String Is_Fox_Move = "Is_Fox_Move";
-	private static final String Is_Fox_Eat = "Is_Fox_Eat";
-	private static final String Fox_Move = "Fox_Move";
-	private static final String Fox_Eat = "Fox_Eat";	
+	private static final String Is_Fox_Eat = "Is_Fox_Eat";	
 	private static final String Yes = "Yes";
 	private static final String Board = "Board";
 	private static final String EATEN = "EATEN";
@@ -75,14 +73,7 @@ public class GameLogic {
 		Set setTo = (Set) lastMove.get(3);
 		String from = (String) setFrom.getValue();
 		String to = (String) setTo.getValue();
-		int xfrom = Integer.valueOf(from) / 10;
-		int yfrom = Integer.valueOf(from) % 10;		
-		int xto = Integer.valueOf(to) / 10;
-		int yto = Integer.valueOf(to) % 10;
-		check((Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 1) ||
-				(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 1) || 
-				(Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 0));
-		if(checkAPositionIsFox(from, lastState) && checkFoxCanMove(from, lastState)){
+		if(checkAPositionIsFox(from, lastState) && checkFoxCanMoveFrom2To(from, to, lastState)){
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 			operations.add(new Set(Is_Fox_Move, Yes));
 			operations.add(new Set(From, from));
@@ -108,21 +99,27 @@ public class GameLogic {
 		// 5) ...		
 		String from = lastState.getFrom();
 		String to = lastState.getTo();
-		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();	
+		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
+		ArrayList<ArrayList<Integer>> newB = new ArrayList<ArrayList<Integer>>();
+		for(int i=0;i<7;i++) {
+			newB.add(new ArrayList<Integer>());
+			for(int j=0;j<7;j++) {
+				newB.get(i).add(lastB.get(i).get(j));
+			}
+		}
 		String anotherFox = findAnotherFox(from, lastState);
 		
 		if(checkAPositionIsFox(from, lastState) && checkAPositionIsEmpty(to, lastState)
 				&& !checkFoxCanEat(from, lastState) && !checkFoxCanEat(anotherFox, lastState)){
-			
 			int xfrom = Integer.valueOf(from) / 10;
 			int yfrom = Integer.valueOf(from) % 10;		
 			int xto = Integer.valueOf(to) / 10;
 			int yto = Integer.valueOf(to) % 10;	
-			lastB.get(xto).set(yto, lastB.get(xfrom).get(yfrom));
-			lastB.get(xfrom).set(yfrom, 0);
+			newB.get(xto).set(yto, lastB.get(xfrom).get(yfrom));
+			newB.get(xfrom).set(yfrom, 0);
 			operations.add(new SetTurn(lastState.getPlayerIds().get(turnOfColor.getOppositeColor().ordinal())));					
 			operations.add(new Delete(Is_Fox_Move));
-			operations.add(new Set(Board, lastB));
+			operations.add(new Set(Board, newB));
 			
 		}else{
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
@@ -146,14 +143,7 @@ public class GameLogic {
 		String from = (String) setFrom.getValue();
 		String to = (String) setTo.getValue();
 		
-		int xfrom = Integer.valueOf(from) / 10;
-		int yfrom = Integer.valueOf(from) % 10;		
-		int xto = Integer.valueOf(to) / 10;
-		int yto = Integer.valueOf(to) % 10;
-		check((Math.abs(xfrom-xto) == 2 && Math.abs(yfrom - yto) == 2) ||
-				(Math.abs(xfrom-xto) == 2 && Math.abs(yfrom - yto) == 0) || 
-				(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 2));
-		if(checkAPositionIsFox(from, lastState) && checkFoxCanEat(from, lastState)){
+		if(checkAPositionIsFox(from, lastState) && checkFoxCanEatFrom2To(from, to, lastState)){
 			operations.add(new SetTurn(lastState.getPlayerId(turnOfColor)));
 			operations.add(new Set(Is_Fox_Eat, Yes));
 			operations.add(new Set(From, from));
@@ -249,7 +239,13 @@ public class GameLogic {
 		String to = (String) setTo.getValue();
 		
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
-		ArrayList<ArrayList<Integer>> newB = lastB;
+		ArrayList<ArrayList<Integer>> newB = new ArrayList<ArrayList<Integer>>();
+		for(int i=0;i<7;i++) {
+			newB.add(new ArrayList<Integer>());
+			for(int j=0;j<7;j++) {
+				newB.get(i).add(lastB.get(i).get(j));
+			}
+		}
 		
 		List<Integer> lastArrival = lastState.getARRIVAL();
 		
@@ -273,7 +269,7 @@ public class GameLogic {
 				|| (xto >= 3 && xto <= 6 && yto >= 2 && yto <= 4))){
 			newArrival = subtract(lastArrival, leaveSheep);
 		}
-		if(checkSheepCanMove(from, lastState)){
+		if(checkSheepCanMoveFrom2To(from, to, lastState)){
 			newB.get(xto).set(yto, lastB.get(xfrom).get(yfrom));
 			newB.get(xfrom).set(yfrom, 0);
 			operations.add(new SetTurn(lastState.getPlayerIds().get(turnOfColor.getOppositeColor().ordinal())));
@@ -330,6 +326,60 @@ public class GameLogic {
 		}
 	}
 	
+	boolean checkFoxCanEatFrom2To(String from, String to, State lastState) {
+		int x = Integer.valueOf(from) / 10;
+		int y = Integer.valueOf(from) % 10;
+		int xto = Integer.valueOf(to) / 10;
+		int yto = Integer.valueOf(to) % 10;
+		
+		//x and y are both even or odd
+		if((x % 2 == 0 && y % 2 == 0) || ((x % 2) == 1 && (y % 2) == 1)){
+			if(checkAPositionIsSheep(x - 1, y, lastState) && checkAPositionIsEmpty(x - 2, y, lastState) 
+					&& (xto == x - 2) && (yto == y)){
+				return true;
+			}else if(checkAPositionIsSheep(x + 1, y, lastState) && checkAPositionIsEmpty(x + 2, y, lastState) 
+					&& (xto == x + 2) && (yto == y)){
+				return true;
+			}else if(checkAPositionIsSheep(x, y - 1, lastState) && checkAPositionIsEmpty(x, y - 2, lastState) 
+					&& (xto == x) && (yto == y - 2)){
+				return true;
+			}else if(checkAPositionIsSheep(x, y + 1, lastState) && checkAPositionIsEmpty(x, y + 2, lastState) 
+					&& (xto == x) && (yto == y + 2)){
+				return true;
+			}else if(checkAPositionIsSheep(x - 1, y + 1, lastState) && checkAPositionIsEmpty(x - 2, y + 2, lastState) 
+					&& (xto == x - 2) && (yto == y + 2)){
+				return true;
+			}else if(checkAPositionIsSheep(x + 1, y  + 1, lastState) && checkAPositionIsEmpty(x + 2, y + 2, lastState) 
+					&& (xto == x + 2) && (yto == y + 2)){
+				return true;
+			}else if(checkAPositionIsSheep(x - 1, y - 1, lastState) && checkAPositionIsEmpty(x - 2, y - 2, lastState) 
+					&& (xto == x - 2) && (yto == y - 2)){
+				return true;
+			}else if(checkAPositionIsSheep(x + 1, y - 1, lastState) && checkAPositionIsEmpty(x + 2, y - 2, lastState) 
+					&& (xto == x + 2) && (yto == y - 2)){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			//x is even and y is odd, or x is odd and y is even
+			if(checkAPositionIsSheep(x - 1, y, lastState) && checkAPositionIsEmpty(x - 2, y, lastState) 
+					&& (xto == x - 2) && (yto == y)){
+				return true;
+			}else if(checkAPositionIsSheep(x + 1, y, lastState) && checkAPositionIsEmpty(x + 2, y, lastState) 
+					&& (xto == x + 2) && (yto == y)){
+				return true;
+			}else if(checkAPositionIsSheep(x, y - 1, lastState) && checkAPositionIsEmpty(x, y - 2, lastState) 
+					&& (xto == x) && (yto == y -2)){
+				return true;
+			}else if(checkAPositionIsSheep(x, y + 1, lastState) && checkAPositionIsEmpty(x, y + 2, lastState) 
+					&& (xto == x) && (yto == y + 2)){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
 	
 	boolean checkFoxCanEat(String st, ArrayList<ArrayList<Integer>> newBoard) {
 		int x = Integer.valueOf(st) / 10;
@@ -413,15 +463,74 @@ public class GameLogic {
 		}
 	}
 	
+	boolean checkFoxCanMoveFrom2To(String from, String to, State lastState) {
+		int xfrom = Integer.valueOf(from) / 10;
+		int yfrom = Integer.valueOf(from) % 10;
+		int xto = Integer.valueOf(to) / 10;
+		int yto = Integer.valueOf(to) % 10;
+		//x and y are both even or odd
+		if((xfrom % 2 == 0 && yfrom % 2 == 0) || ((xfrom % 2) == 1 && (yfrom % 2) == 1)){
+			if(checkAPositionIsEmpty(xfrom - 1, yfrom, lastState) && (xto == xfrom - 1) && (yto == yfrom)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom + 1, yfrom, lastState) && (xto == xfrom + 1) && (yto == yfrom)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom, yfrom - 1, lastState) && (xto == xfrom) && (yto == yfrom - 1)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom, yfrom + 1, lastState) && (xto == xfrom) && (yto == yfrom - 1)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom - 1, yfrom + 1, lastState) && (xto == xfrom - 1) && (yto == yfrom + 1)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom + 1, yfrom + 1, lastState) && (xto == xfrom + 1) && (yto == yfrom + 1)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom - 1, yfrom - 1, lastState) && (xto == xfrom - 1) && (yto == yfrom - 1)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom + 1, yfrom - 1, lastState) && (xto == xfrom + 1) && (yto == yfrom - 1)){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			//x is even and y is odd, or x is odd and y is even
+			if(checkAPositionIsEmpty(xfrom - 1, yfrom + 1, lastState) && (xto == xfrom - 1) && (yto == yfrom + 1)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom + 1, yfrom + 1, lastState) && (xto == xfrom + 1) && (yto == yfrom + 1)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom - 1, yfrom - 1, lastState) && (xto == xfrom - 1) && (yto == yfrom - 1)){
+				return true;
+			}else if(checkAPositionIsEmpty(xfrom + 1, yfrom - 1, lastState) && (xto == xfrom + 1) && (yto == yfrom - 1)){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
+	
 	boolean checkSheepCanMove(String st, State lastState){
 		int x = Integer.valueOf(st) / 10;
 		int y = Integer.valueOf(st) % 10;
 		
 		if(checkAPositionIsEmpty(x, y + 1, lastState)){
 			return true;
-		}else if(checkAPositionIsEmpty(x, y + 1, lastState)){
+		}else if(checkAPositionIsEmpty(x, y - 1, lastState)){
 			return true;
 		}else if(checkAPositionIsEmpty(x - 1, y, lastState)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	boolean checkSheepCanMoveFrom2To(String from, String to, State lastState){
+		int x = Integer.valueOf(from) / 10;
+		int y = Integer.valueOf(from) % 10;
+		int xto = Integer.valueOf(to) / 10;
+		int yto = Integer.valueOf(to) % 10;
+		
+		if(checkAPositionIsEmpty(x, y + 1, lastState) && (xto == x) && (yto == y + 1)){
+			return true;
+		}else if(checkAPositionIsEmpty(x, y - 1, lastState) && (xto == x) && (yto == y - 1)){
+			return true;
+		}else if(checkAPositionIsEmpty(x - 1, y, lastState) && (xto == x - 1) && (yto == y)){
 			return true;
 		}else{
 			return false;
@@ -437,23 +546,6 @@ public class GameLogic {
 		return false;
 	}
 
-/*
-	private boolean checkAPositionIsFox(int x, int y, State lastState){
-		Integer [][] lastB = lastState.getBoard();		
-		if(x >= 0 && x <= 6 && y >= 0 && y <= 6 && lastB[x][y] != 1 || lastB[x][y] != 2)
-			return false;
-		return true;
-	}
-	
-	private boolean checkAPositionIsSheep(String st, State lastState){
-		Integer [][] lastB = lastState.getBoard();
-		int x = Integer.valueOf(st) % 10;
-		int y = Integer.valueOf(st) / 10;
-		if(lastB[x][y] < 3 || lastB[x][y] > 22)
-			return false;
-		return true;
-	}
-*/
 	boolean checkAPositionIsSheep(String st, State lastState){
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();	
 		int x = Integer.valueOf(st) / 10;
@@ -545,7 +637,6 @@ public class GameLogic {
 		board.add(new ArrayList<Integer>(row7));
 
 	    int fPlayerId = playerIds.get(0);
-	    int sPlayerId = playerIds.get(1);
 		List<Operation> operations = Lists.newArrayList();
 		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, F, S, EATEN, ARRIVAL
 		operations.add(new SetTurn(fPlayerId));
