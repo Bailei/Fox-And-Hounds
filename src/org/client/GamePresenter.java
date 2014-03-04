@@ -51,6 +51,16 @@ public class GamePresenter {
 		void chooseNextPositionForSheep(List<String> SelectedPosition, ArrayList<ArrayList<Integer>> board);
 		
 		void chooseNextPositionForFox(List<String> SelectedPosition, ArrayList<ArrayList<Integer>> board);
+	
+		 public void testButton1();
+		 
+		 public void testButton2();
+		 
+		 public void testButton3();
+		 
+		 public void testButton4();
+		 
+		 public void testButton5();
 	}
 	
 	private final GameLogic gameLogic = new GameLogic();
@@ -76,12 +86,17 @@ public class GamePresenter {
 		selectedPosition = Lists.newArrayList();
 		
 		if(updateUI.getState().isEmpty()){
+		
 			//The F player sends the initial setup move
 			if(myColor.isPresent() && myColor.get().isFox()){
+			
 				sendInitialMove(playerIds);
+				
+//				view.testButton2();
 			}
 			return;
 		}
+
 		
 		Color turnOfColor = null;
 		for(Operation operation : updateUI.getLastMove()){
@@ -91,7 +106,7 @@ public class GamePresenter {
 		}
 		
 		gameState = gameLogic.gameApiStateToState(updateUI.getState(), turnOfColor, playerIds);
-		
+	
 		
 		if(updateUI.isViewer()){
 			view.setViewerState(gameState.getBoard());
@@ -108,7 +123,9 @@ public class GamePresenter {
 		Color myC = myColor.get();
 		Color opponent = myC.getOppositeColor();
 		
+		
 		view.setPlayerState(gameState.getBoard());
+//		view.testButton2();
 		if(isMyTurn()){
 			if(isFoxTurn() && !endGame(gameState)){
 				if(!gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat()){
@@ -255,7 +272,10 @@ public class GamePresenter {
 	 * The view can only call this method if the presenter passed
 	 */
 	private void sendInitialMove(List<Integer> playerIds){
-		container.sendMakeMove(gameLogic.getMoveInitial(playerIds));
+		
+		List<Operation> move = gameLogic.getMoveInitial(playerIds);
+		
+		container.sendMakeMove(move);
 	}
 	
 	private void MakeDoFoxNormalMove(){		

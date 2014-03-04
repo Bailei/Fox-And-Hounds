@@ -15,7 +15,7 @@
   <!-- PlayN related module inherits   tripleplay.TriplePlay      -->
 
   <!-- Specify the app entry point class.                         -->
-  <entry-point class='org.graphics.CheatEntryPoint'/>
+  <entry-point class='org.graphics.GameEntryPoint'/>
 
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>

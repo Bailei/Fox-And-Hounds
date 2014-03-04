@@ -637,10 +637,15 @@ public class GameLogic {
 		board.add(new ArrayList<Integer>(row7));
 
 	    int fPlayerId = playerIds.get(0);
+	    int sPlayerId = playerIds.get(1);
 		List<Operation> operations = Lists.newArrayList();
 		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, F, S, EATEN, ARRIVAL
 		operations.add(new SetTurn(fPlayerId));
-		operations.add(new Set(Board, board));		
+		operations.add(new Set(Board, board));	
+		operations.add(new Set(F, ImmutableList.of(1, 2)));
+		operations.add(new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)));
+		operations.add(new Set(EATEN, ImmutableList.of()));
+		operations.add(new Set(ARRIVAL, ImmutableList.of()));
 		return operations;
 	}
 	

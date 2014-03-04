@@ -2,9 +2,18 @@
 <ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
   xmlns:g="urn:import:com.google.gwt.user.client.ui">
   <ui:image field = "backgroud" src = "board.png"/>
-  <g:VerticalPanel>
-    <g:HorizontalPanel height="100px">
-      <g:HorizontalPanel ui:field="playArea"/>
-    </g:HorizontalPanel>
-  </g:VerticalPanel>
+  <ui:style>
+    .board {
+            margin-top: 25px;
+            margin-left: 25px;
+    }
+  </ui:style>
+  <g:HTMLPanel>
+    <g:HorizontalPanel width="30px" height="40px" ui:field="test1"/>
+    <g:HorizontalPanel width="30px" height="40px" ui:field="test2"/>
+    <g:HorizontalPanel width="30px" height="40px" ui:field="test3"/>
+    <g:HorizontalPanel width="30px" height="40px" ui:field="test4"/>
+    <g:HorizontalPanel width="30px" height="40px" ui:field="test5"/>
+    <g:Grid ui:field="gameGrid" styleName="{style.board}"/>
+  </g:HTMLPanel>
 </ui:UiBinder> 

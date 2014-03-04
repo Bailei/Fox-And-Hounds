@@ -4,10 +4,10 @@ import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.ImageResource;
 
 public interface GameImages extends ClientBundle {
-	@Source("images/fox1.png")
+	@Source("images/fox.png")
 	ImageResource fox();
 	
-	@Source("images/sheep3.png")
+	@Source("images/sheep.png")
 	ImageResource sheep();
 	
 	@Source("images/empty.png")
@@ -17,6 +17,7 @@ public interface GameImages extends ClientBundle {
 	@Source("images/board.png")
 	ImageResource board();
 	
+	/*
 	@Source("images/fox1.png")
 	ImageResource fox1();
 	
@@ -82,4 +83,5 @@ public interface GameImages extends ClientBundle {
 	
 	@Source("images/sheep22.png")
 	ImageResource sheep22();
+	*/
 }

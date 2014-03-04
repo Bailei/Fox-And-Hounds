@@ -98,7 +98,11 @@ public class GameLogicTest {
 	
 	private final ImmutableList<Operation> initialMoveByF = ImmutableList.<Operation>of(
 			new SetTurn(fId),
-			new Set(BOARD, boardForInitialState()));
+			new Set(BOARD, boardForInitialState()),
+			new Set(F, ImmutableList.of(1, 2)),
+			new Set(S, ImmutableList.of(3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)),
+			new Set(EATEN, ImmutableList.of()),
+			new Set(ARRIVAL, ImmutableList.of()));
 	
 	@Test
 	public void testInitialMove() {

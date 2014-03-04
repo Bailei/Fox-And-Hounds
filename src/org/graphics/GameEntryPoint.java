@@ -60,23 +60,5 @@ public class GameEntryPoint implements EntryPoint{
 		
 		container.sendGameReady();
 		container.updateUi(container.getPlayerIds().get(0));
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	}	
 }

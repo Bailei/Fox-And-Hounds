@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.client.GameApi;
+import org.client.GameLogic;
+import org.client.GamePresenter;
 import org.client.GamePresenter.View;
 import org.client.GameApi.Container;
 import org.client.GameApi.Delete;
@@ -332,13 +335,13 @@ public class GamePresenterTest {
 	  }
 	  
 	  @Test
-	  public void testEmptyStateForW() {
+	  public void testEmptyStateForF() {
 		  gamePresenter.updateUI(createUpdateUI(fId, 0, emptyState));
 		  verify(mockContainer).sendMakeMove(gameLogic.getMoveInitial(playerIds));
 	  }
 	  
 	  @Test
-	  public void testEmptyStateForB() {
+	  public void testEmptyStateForS() {
 		  gamePresenter.updateUI(createUpdateUI(sId, 0, emptyState));
 	  }
 	  

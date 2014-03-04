@@ -21,6 +21,8 @@ public class GameImageSupplier{
 			return getSheepImage();
 		case BOARD:
 			return getBoardImage();
+		case EMPTY:
+			return getEmptyImage();
 		default:
 			throw new RuntimeException("Forgot kind=" + gameImage.kind);
 		}
@@ -36,5 +38,9 @@ public class GameImageSupplier{
 	
 	private ImageResource getBoardImage() {
 		return gameImages.board();
+	}
+	
+	private ImageResource getEmptyImage() {
+		return gameImages.empty();
 	}
 }

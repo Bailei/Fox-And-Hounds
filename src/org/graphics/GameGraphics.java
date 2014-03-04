@@ -30,20 +30,52 @@ import com.google.gwt.user.client.ui.Widget;
 public class GameGraphics extends Composite implements GamePresenter.View {
 	public interface GameGraphicsUiBinder extends UiBinder<Widget, GameGraphics>{	
 	}
+
+	@UiField
+	HorizontalPanel test1;
 	
 	@UiField
-	HorizontalPanel playArea;
+	HorizontalPanel test2;
+	
+	@UiField
+	HorizontalPanel test3;
+	
+	@UiField
+	HorizontalPanel test4;
+	
+	@UiField
+	HorizontalPanel test5;
+	
 	@UiField
 	Grid gameGrid;
+	
+	public void testButton1() {
+		test1.add(new Button("test1"));
+	}
+	
+	public void testButton2() {
+		test2.add(new Button("test2"));
+	}
+	
+	public void testButton3() {
+		test3.add(new Button("test3"));
+	}
+	
+	public void testButton4() {
+		test4.add(new Button("test4"));
+	}
+	
+	public void testButton5() {
+		test5.add(new Button("test5"));
+	}
 
 	//private boolean enableClicksForFox = false;
 	//private boolean enableClicksForSheep = false;
 	//private boolean enableClicksFoxEmpty = false;
-	private boolean enableClicks = false;
-	
+	private boolean enableClicks = false;	
 	private final GameImageSupplier gameImageSupplier;
 	private GamePresenter presenter;
-	private Image[][] board = new Image[7][7];
+//	private Image[][] board = new Image[7][7];
 	
 	public GameGraphics(){
 		GameImages gameImages = GWT.create(GameImages.class);
@@ -55,8 +87,16 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 		gameGrid.setCellPadding(0);
 		gameGrid.setCellSpacing(0);
 		gameGrid.setBorderWidth(0);
-		gameGrid.setWidth("50px");
+//		gameGrid.setWidth("400px");
+//		gameGrid.setHeight("400px");
 		
+	    for(int i = 0; i< 7; i++){
+	        for(int j = 0; j< 7; j++){
+	          gameGrid.getCellFormatter().setHeight(i, j, "50px");
+	          gameGrid.getCellFormatter().setWidth(i, j, "50px");  
+	        }
+	    } 
+	    
 		/*
 		for(int row = 0; row < 7; row++){
 			for(int col = 0; col < 7; col++){
@@ -75,14 +115,21 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	    for (int i = 0; i < 7; i++) {
 	    	images.add(Lists.<GameImage>newArrayList());
 	    	for(int j=0; j<7;j++) {
-	    		if(board.get(i).get(j) == 1 || board.get(i).get(j) == 2)
+	    		if(board.get(i).get(j) == 1 || board.get(i).get(j) == 2) {
 	    		images.get(i).add(GameImage.Factory.getFox());
-	    		if(board.get(i).get(j) == 0)
-	    		images.get(i).add(GameImage.Factory.getEmpty());
-	    		if(board.get(i).get(j) >= 3 && board.get(i).get(j) <= 22)
+	    		
+	    		}
+	    		if(board.get(i).get(j) == 0) {	
+	    		images.get(i).add(GameImage.Factory.getEmpty()); 
+	    		
+	    		}
+	    		if(board.get(i).get(j) >= 3 && board.get(i).get(j) <= 22) {
 	    		images.get(i).add(GameImage.Factory.getFox());
+	    		
+	    		}
 	    	}
 	    }
+	  
 	    return createImages(images, false, board);
 	}
 	
@@ -94,9 +141,10 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 			res.add(Lists.<Image>newArrayList());
 			for(GameImage img : imgList) {
 				if(img == null) continue;
-				final GameImage imgFinal = img;
+//				final GameImage imgFinal = img;
+				
 				Image image = new Image(gameImageSupplier.getResource(img));
-			
+				
 				final int row = i;
 				final int col = j;
 				final ArrayList<ArrayList<Integer>> b = board;
@@ -106,38 +154,44 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 						public void onClick(ClickEvent event){
 							String st = Integer.toString(row * 10 + col);
 							if(enableClicks){
-								if(b.get(row).get(col) == 1 || b.get(row).get(col) == 2){
+								if(b.get(row).get(col) == 1 || b.get(row).get(col) == 2 || b.get(row).get(col) == 0){
 									presenter.positionSelectedForFox(st);
-								}else if(b.get(row).get(col) >= 3 || b.get(row).get(col) <= 22){
+								}else if((b.get(row).get(col) >= 3 && b.get(row).get(col) <= 22) || b.get(row).get(col) == 0){
 									presenter.positionSelectedForSheep(st);
 								}
 							}
 						}
 					});
-				}			
+				}
+		
 				res.get(i).add(image);
 				j++;
+		
 			}
 			i++;
 		}
+	
 		return res;
 	}
 	
 	private void placeImages(Grid grid, List<List<Image>> images) {
 	    grid.clear();
-	    for(int i=0;i<7;i++){
-	    	for(int j=0;j<7;j++) {
+	    for(int i = 0;i < 7; i++){
+	    	for(int j = 0; j < 7; j++) {
+	    	
 	    		FlowPanel imageContainer = new FlowPanel();
 	    		Image tmp = images.get(i).get(j);
+	    
 	    		if(tmp != null){
 	    			imageContainer.add(tmp);
 	    			imageContainer.setWidth("100%");
-	    			grid.setWidget(i, j, imageContainer);
+	    			gameGrid.setWidget(i, j, imageContainer);
 	    		}
 	    	}
 	    }
 	}
 	  
+/*
 	private Image createBoard() {
 		GameImage images = GameImage.Factory.getBoard();
 		return createImages(images);
@@ -154,6 +208,7 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 		imageContainer.add(images);
 		panel.add(imageContainer);
 	}
+*/
 	
 	private void disableClicks(){
 		enableClicks = false;
@@ -166,15 +221,15 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 
 	@Override
 	public void setViewerState(ArrayList<ArrayList<Integer>> board) {
-		placeBoardImage(playArea, createBoard());
 		placeImages(gameGrid, createGridImage(board));
 		disableClicks();
 	}
 
 	@Override
 	public void setPlayerState(ArrayList<ArrayList<Integer>> board) {
-		placeBoardImage(playArea, createBoard());
-		placeImages(gameGrid, createGridImage(board));
+        
+        List<List<Image>> images = createGridImage(board);
+		placeImages(gameGrid, images);
 		disableClicks();
 	}	
 	
