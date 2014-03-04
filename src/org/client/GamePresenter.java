@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
  * and the presenter is {@link GamePresenter}.
  */
 public class GamePresenter {
-	interface View{
+	public interface View{
 	    /**
 	     * Sets the presenter. The viewer will call certain methods on the presenter, e.g.,
 	     * when a position is selected({@link #positionSelected})
@@ -160,7 +160,7 @@ public class GamePresenter {
 	 * Choose from_position and to_position from the board for fox
 	 * The view can only call this method if the presenter called {@link View#chooseNextPositionForFoxToMove}
 	 */
-	void positionSelectedForFox(String st){
+	public void positionSelectedForFox(String st){
 		check(isMyTurn() && isFoxTurn() && !gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat());
 		
 		if(gameLogic.getHowManySheepHaveBeenEaten(gameState.getEATEN()) < 12){
@@ -177,6 +177,12 @@ public class GamePresenter {
 					chooseNextPositionForFox();
 				}else if(gameLogic.checkAPositionIsEmpty(st, gameState)){
 						selectedPosition.add(st);
+						List<Operation> operations = Lists.newArrayList();
+						operations.add(new SetTurn(-1));
+						operations.add(new SetTurn(3));
+						operations.add(new Set("From", selectedPosition.get(0)));
+						operations.add(new Set("To", selectedPosition.get(1)));
+						container.sendMakeMove(gameLogic.foxEatMove(gameState, operations));
 				}else{
 					chooseNextPositionForFox();
 				}
@@ -188,7 +194,7 @@ public class GamePresenter {
 	 * Choose from_position and to_position from the board for sheep
 	 * The view can only call this method if the presenter called {@link View#chooseNextPositionForSheep}
 	 */
-	void positionSelectedForSheep(String st){
+	public void positionSelectedForSheep(String st){
 		check(isMyTurn() && isSheepTurn() && !gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat());
 		if(gameLogic.getHowManySheepHaveBeenArrived(gameState.getARRIVAL()) < 9){
 			if(selectedPosition.size() == 0){
@@ -212,6 +218,11 @@ public class GamePresenter {
 							(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 1) || 
 							(Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 0))
 						selectedPosition.add(st);
+					List<Operation> operations = Lists.newArrayList();
+					operations.add(new SetTurn(-1));
+					operations.add(new Set("From", selectedPosition.get(0)));
+					operations.add(new Set("To", selectedPosition.get(1)));
+					container.sendMakeMove(gameLogic.foxNormalMove(gameState, operations));
 				}else{
 					chooseNextPositionForSheep();
 				}
@@ -219,6 +230,26 @@ public class GamePresenter {
 		}
 	}
 	
+	/*
+	public void finishFoxSelectPosition() {
+		List<Operation> operations = Lists.newArrayList();
+		operations.add(new SetTurn(-1));
+		operations.add(new SetTurn(3));
+		operations.add(new Set("From", selectedPosition.get(0)));
+		operations.add(new Set("To", selectedPosition.get(1)));
+		container.sendMakeMove(gameLogic.foxEatMove(gameState, operations));
+	}
+
+	public void finishFoxMoveSelectPosition() {
+		List<Operation> operations = Lists.newArrayList();
+		operations.add(new SetTurn(-1));
+		operations.add(new SetTurn(3));
+		operations.add(new Set("From", selectedPosition.get(0)));
+		operations.add(new Set("To", selectedPosition.get(1)));
+		container.sendMakeMove(gameLogic.foxNormalMove(gameState, operations));
+	}
+	*/
+		
 	/**
 	 * Sends a move.
 	 * The view can only call this method if the presenter passed

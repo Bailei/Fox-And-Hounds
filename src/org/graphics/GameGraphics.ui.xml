@@ -1,0 +1,10 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+  xmlns:g="urn:import:com.google.gwt.user.client.ui">
+  <ui:image field = "backgroud" src = "board.png"/>
+  <g:VerticalPanel>
+    <g:HorizontalPanel height="100px">
+      <g:HorizontalPanel ui:field="playArea"/>
+    </g:HorizontalPanel>
+  </g:VerticalPanel>
+</ui:UiBinder> 
