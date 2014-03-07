@@ -23,6 +23,8 @@ public class GameImageSupplier{
 			return getBoardImage();
 		case EMPTY:
 			return getEmptyImage();
+		case WRONGPLACE:
+			return getWrongPlaceImage();
 		default:
 			throw new RuntimeException("Forgot kind=" + gameImage.kind);
 		}
@@ -42,5 +44,9 @@ public class GameImageSupplier{
 	
 	private ImageResource getEmptyImage() {
 		return gameImages.empty();
+	}
+	
+	private ImageResource getWrongPlaceImage() {
+		return gameImages.wrongplace();
 	}
 }

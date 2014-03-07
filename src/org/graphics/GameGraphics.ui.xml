@@ -2,18 +2,47 @@
 <ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
   xmlns:g="urn:import:com.google.gwt.user.client.ui">
   <ui:image field = "backgroud" src = "board.png"/>
-  <ui:style>
+  <ui:style field = "css" type="org.graphics.GameCss">
+    .highlighted {
+      outline: solid black 2px;
+    }
+    
     .board {
-            margin-top: 25px;
-            margin-left: 25px;
+            margin-top: 20px;
+            margin-left:25px;
+    }
+    
+    @sprite .back{
+	     margin-top : 0px;
+	     gwt-image: "backgroud";
     }
   </ui:style>
-  <g:HTMLPanel>
-    <g:HorizontalPanel width="30px" height="40px" ui:field="test1"/>
-    <g:HorizontalPanel width="30px" height="40px" ui:field="test2"/>
-    <g:HorizontalPanel width="30px" height="40px" ui:field="test3"/>
-    <g:HorizontalPanel width="30px" height="40px" ui:field="test4"/>
-    <g:HorizontalPanel width="30px" height="40px" ui:field="test5"/>
-    <g:Grid ui:field="gameGrid" styleName="{style.board}"/>
-  </g:HTMLPanel>
+ <!--<g:HTMLPanel styleName = "{style.back}">  -->   
+  <g:HorizontalPanel>
+    <g:HTMLPanel>
+      <div class = "{css.back}">
+        <g:Grid ui:field="gameGrid" styleName="{css.board}"/>
+      </div>
+    </g:HTMLPanel>
+    <!--
+    <g:VerticalPanel> 
+      <g:Button ui:field="moveBtn" text="Confirm Move"/>
+    </g:VerticalPanel>  
+      -->  
+    <g:VerticalPanel>  
+      <g:HorizontalPanel width="30px" height="40px" ui:field="test1"/>
+    </g:VerticalPanel>
+        <g:VerticalPanel>  
+      <g:HorizontalPanel width="30px" height="40px" ui:field="test2"/>
+    </g:VerticalPanel>
+        <g:VerticalPanel>  
+      <g:HorizontalPanel width="30px" height="40px" ui:field="test3"/>
+    </g:VerticalPanel>
+        <g:VerticalPanel>  
+      <g:HorizontalPanel width="30px" height="40px" ui:field="test4"/>
+    </g:VerticalPanel>
+        <g:VerticalPanel>  
+      <g:HorizontalPanel width="30px" height="40px" ui:field="test5"/>
+    </g:VerticalPanel>
+  </g:HorizontalPanel>
 </ui:UiBinder> 

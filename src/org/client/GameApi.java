@@ -13,6 +13,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import org.graphics.GameGraphics;
+
 public final class GameApi {
   public static final String ALL = "ALL";
   public static final String PLAYER_ID = "playerId";
@@ -28,11 +30,11 @@ public final class GameApi {
   public interface Container {
     void sendGameReady();
     void sendVerifyMoveDone(VerifyMoveDone verifyMoveDone);
-    void sendMakeMove(List<Operation> operations);
+    void sendMakeMove(List<Operation> operations, GameGraphics view);
   }
 
   public interface Game {
-    void sendVerifyMove(VerifyMove verifyMove);
+    void sendVerifyMove(VerifyMove verifyMove, GameGraphics view);
     void sendUpdateUI(UpdateUI updateUI);
   }
 
@@ -80,17 +82,18 @@ public final class GameApi {
     }
 
     @Override
-    public void sendMakeMove(List<Operation> operations) {
+    public void sendMakeMove(List<Operation> operations, GameGraphics view) {
       lastMovePlayerId = updateUiPlayerId;
       lastMove = ImmutableList.copyOf(operations);
       lastGameState = gameState.copy();
       gameState.makeMove(operations);
       // Verify the move on all players
       for (int playerId : playerIds) {
+//   	  view.testButton5();
         game.sendVerifyMove(new VerifyMove(playersInfo,
             gameState.getStateForPlayerId(playerId),
             lastGameState.getStateForPlayerId(playerId), lastMove, lastMovePlayerId,
-            playerIdToNumberOfTokensInPot));
+            playerIdToNumberOfTokensInPot), view);
       }
       updateUi(updateUiPlayerId);
     }

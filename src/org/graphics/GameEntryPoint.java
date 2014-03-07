@@ -26,8 +26,8 @@ public class GameEntryPoint implements EntryPoint{
 	public void onModuleLoad(){
 		Game game = new Game(){
 			@Override
-			public void sendVerifyMove(VerifyMove verifyMove){
-				container.sendVerifyMoveDone(new GameLogic().verify(verifyMove));
+			public void sendVerifyMove(VerifyMove verifyMove, GameGraphics view){
+				container.sendVerifyMoveDone(new GameLogic().verify(verifyMove, view));
 			}
 			
 			@Override

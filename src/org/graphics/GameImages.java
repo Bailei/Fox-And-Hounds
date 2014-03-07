@@ -13,6 +13,9 @@ public interface GameImages extends ClientBundle {
 	@Source("images/empty.png")
 	ImageResource empty();
 	
+	@Source("images/wrongplace.png")
+	ImageResource wrongplace();
+	
 	//400*400
 	@Source("images/board.png")
 	ImageResource board();

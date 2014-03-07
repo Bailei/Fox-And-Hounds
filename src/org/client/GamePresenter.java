@@ -13,6 +13,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import org.graphics.GameGraphics;
+
 /**
  * The presenter that controls the game graphics.
  * We use the MVP pattern:
@@ -58,20 +60,21 @@ public class GamePresenter {
 		 
 		 public void testButton3();
 		 
-		 public void testButton4();
+		 public void testButton4(String str);
 		 
 		 public void testButton5();
 	}
 	
 	private final GameLogic gameLogic = new GameLogic();
-	private final View view;
+	//private final View view;
+	private final GameGraphics view;
 	private final Container container;
 	//A viewer doesn't have a color 
 	private Optional<Color> myColor;
 	private State gameState;
 	private List<String> selectedPosition;
 	
-	public GamePresenter(View view, Container container){
+	public GamePresenter(/*View view*/GameGraphics view, Container container){
 		this.view = view;
 		this.container = container;
 		view.setPresenter(this);
@@ -79,6 +82,8 @@ public class GamePresenter {
 	
 	//Updates the presenter and the view with the state in updateUI
 	public void updateUI(UpdateUI updateUI){
+		
+		
 		List<Integer> playerIds = updateUI.getPlayerIds();
 		int yourPlayerId = updateUI.getYourPlayerId();
 		int yourPlayerIndex = updateUI.getPlayerIndex(yourPlayerId);
@@ -89,14 +94,10 @@ public class GamePresenter {
 		
 			//The F player sends the initial setup move
 			if(myColor.isPresent() && myColor.get().isFox()){
-			
 				sendInitialMove(playerIds);
-				
-//				view.testButton2();
 			}
 			return;
 		}
-
 		
 		Color turnOfColor = null;
 		for(Operation operation : updateUI.getLastMove()){
@@ -107,7 +108,6 @@ public class GamePresenter {
 		
 		gameState = gameLogic.gameApiStateToState(updateUI.getState(), turnOfColor, playerIds);
 	
-		
 		if(updateUI.isViewer()){
 			view.setViewerState(gameState.getBoard());
 			return;
@@ -121,11 +121,10 @@ public class GamePresenter {
 		
 		//Must be a player!
 		Color myC = myColor.get();
+		
 		Color opponent = myC.getOppositeColor();
-		
-		
 		view.setPlayerState(gameState.getBoard());
-//		view.testButton2();
+		
 		if(isMyTurn()){
 			if(isFoxTurn() && !endGame(gameState)){
 				if(!gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat()){
@@ -155,15 +154,15 @@ public class GamePresenter {
 		view.chooseNextPositionForFox(ImmutableList.copyOf(selectedPosition), gameState.getBoard());
 	}
 
-	private boolean isMyTurn() {
+	public boolean isMyTurn() {
 		return myColor.isPresent() && myColor.get() == gameState.getTurn();
 	}
 	
-	private boolean isFoxTurn(){
+	public boolean isFoxTurn(){
 		return myColor.get() == Color.F;
 	}
 	
-	private boolean isSheepTurn(){
+	public boolean isSheepTurn(){
 		return myColor.get() == Color.S;
 	}
 			
@@ -179,32 +178,29 @@ public class GamePresenter {
 	 */
 	public void positionSelectedForFox(String st){
 		check(isMyTurn() && isFoxTurn() && !gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat());
-		
-		if(gameLogic.getHowManySheepHaveBeenEaten(gameState.getEATEN()) < 12){
 			if(selectedPosition.size() == 0){
-				if(gameLogic.checkAPositionIsFox(st, gameState)
-						&& gameLogic.checkFoxCanMove(st, gameState)){
+//				view.testButton4("size0");
+				if(gameLogic.checkAPositionIsFox(st, gameState) && (gameLogic.checkFoxCanMove(st, gameState) || gameLogic.checkFoxCanEat(st, gameState))){
 					selectedPosition.add(st);
-					chooseNextPositionForFox();
+					chooseNextPositionForFox();	
 				}else{
 					chooseNextPositionForFox();
 				}	
-			}else if(selectedPosition.size() == 1){
+			}else if(selectedPosition.size() == 1){	
+//				view.testButton4("size1");
+				String from = selectedPosition.get(0);
 				if(selectedPosition.contains(st)){
 					chooseNextPositionForFox();
-				}else if(gameLogic.checkAPositionIsEmpty(st, gameState)){
+//				view.testButton4("!@#$%^");
+				}else if(gameLogic.checkAPositionIsEmpty(st, gameState, view)){				    
 						selectedPosition.add(st);
-						List<Operation> operations = Lists.newArrayList();
-						operations.add(new SetTurn(-1));
-						operations.add(new SetTurn(3));
-						operations.add(new Set("From", selectedPosition.get(0)));
-						operations.add(new Set("To", selectedPosition.get(1)));
-						container.sendMakeMove(gameLogic.foxEatMove(gameState, operations));
+						chooseNextPositionForFox();
+//				view.testButton4("size2");
 				}else{
+//				view.testButton4("!!!!!!!");
 					chooseNextPositionForFox();
 				}
 			}
-		}
 	}
 		
 	/**
@@ -213,76 +209,68 @@ public class GamePresenter {
 	 */
 	public void positionSelectedForSheep(String st){
 		check(isMyTurn() && isSheepTurn() && !gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat());
-		if(gameLogic.getHowManySheepHaveBeenArrived(gameState.getARRIVAL()) < 9){
 			if(selectedPosition.size() == 0){
 				if(gameLogic.checkAPositionIsSheep(st, gameState)
-						&& gameLogic.checkFoxCanMove(st, gameState)){
+						&& gameLogic.checkSheepCanMove(st, gameState)){
 					selectedPosition.add(st);
 					chooseNextPositionForSheep();
 				}else{
 					chooseNextPositionForSheep();
 				}	
 			}else if(selectedPosition.size() == 1){
+				String from = selectedPosition.get(0);
 				if(selectedPosition.contains(st)){
 					chooseNextPositionForSheep();
-				}else if(gameLogic.checkAPositionIsEmpty(st, gameState)){
-					String from = selectedPosition.get(0);
-					int xfrom = Integer.valueOf(from) / 10;
-					int yfrom = Integer.valueOf(from) % 10;		
-					int xto = Integer.valueOf(st) / 10;
-					int yto = Integer.valueOf(st) % 10;
-					if((Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 1) ||
-							(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 1) || 
-							(Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 0))
-						selectedPosition.add(st);
+				}else if(gameLogic.checkSheepCanMoveFrom2To(from, st, gameState)){
+//					view.testButton4("checkSheepCanMoveFrom2To");
+					selectedPosition.add(st);
+
 					List<Operation> operations = Lists.newArrayList();
 					operations.add(new SetTurn(-1));
 					operations.add(new Set("From", selectedPosition.get(0)));
 					operations.add(new Set("To", selectedPosition.get(1)));
-					container.sendMakeMove(gameLogic.foxNormalMove(gameState, operations));
+					container.sendMakeMove(gameLogic.doSheepMove(gameState, operations), view);				
 				}else{
 					chooseNextPositionForSheep();
 				}
+				
 			}
-		}
-	}
-	
-	/*
-	public void finishFoxSelectPosition() {
-		List<Operation> operations = Lists.newArrayList();
-		operations.add(new SetTurn(-1));
-		operations.add(new SetTurn(3));
-		operations.add(new Set("From", selectedPosition.get(0)));
-		operations.add(new Set("To", selectedPosition.get(1)));
-		container.sendMakeMove(gameLogic.foxEatMove(gameState, operations));
 	}
 
 	public void finishFoxMoveSelectPosition() {
 		List<Operation> operations = Lists.newArrayList();
 		operations.add(new SetTurn(-1));
-		operations.add(new SetTurn(3));
+		operations.add(new Set("AAA", 1));		
 		operations.add(new Set("From", selectedPosition.get(0)));
 		operations.add(new Set("To", selectedPosition.get(1)));
-		container.sendMakeMove(gameLogic.foxNormalMove(gameState, operations));
+		String from = selectedPosition.get(0);
+		String to = selectedPosition.get(1);
+		
+		if(!gameLogic.checkFoxCanEatFrom2To(from, to, gameState)){
+//			view.testButton4("move!!!");
+			List<Operation> operations_ = gameLogic.foxNormalMove(gameState, operations, view);
+			container.sendMakeMove(operations_, view);
+		}else{
+//			view.testButton4("eat!!!");
+			List<Operation> operations_ = gameLogic.foxEatMove(gameState, operations, view);
+			container.sendMakeMove(operations_, view);
+		}
 	}
-	*/
 		
 	/**
 	 * Sends a move.
 	 * The view can only call this method if the presenter passed
 	 */
 	private void sendInitialMove(List<Integer> playerIds){
-		
 		List<Operation> move = gameLogic.getMoveInitial(playerIds);
-		
-		container.sendMakeMove(move);
+		container.sendMakeMove(move,view);
 	}
 	
 	private void MakeDoFoxNormalMove(){		
-		container.sendMakeMove(gameLogic.doFoxNormalMove(gameState));
+		container.sendMakeMove(gameLogic.doFoxNormalMove(gameState, view),view);
 	}
 	
 	private void MakeDoFoxEatMove(){
-		container.sendMakeMove(gameLogic.doFoxEatMove(gameState));
+		container.sendMakeMove(gameLogic.doFoxEatMove(gameState),view);
 	}	
 }

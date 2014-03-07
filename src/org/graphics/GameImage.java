@@ -14,6 +14,7 @@ public final class GameImage extends Equality{
 		FOX,
 		SHEEP,
 		EMPTY,
+		WRONGPLACE,
 	}
 	
 	public static class Factory{
@@ -31,6 +32,10 @@ public final class GameImage extends Equality{
 		
 		public static GameImage getEmpty(){
 			return new GameImage(GameImageKind.EMPTY);
+		}
+
+		public static GameImage getWrongPlace() {
+			return new GameImage(GameImageKind.WRONGPLACE);
 		}
 	}
 	
