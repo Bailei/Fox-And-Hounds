@@ -229,7 +229,7 @@ public class GamePresenter {
 					operations.add(new SetTurn(-1));
 					operations.add(new Set("From", selectedPosition.get(0)));
 					operations.add(new Set("To", selectedPosition.get(1)));
-					container.sendMakeMove(gameLogic.doSheepMove(gameState, operations), view);				
+					container.sendMakeMove(gameLogic.doSheepMove(gameState, operations, view), view);				
 				}else{
 					chooseNextPositionForSheep();
 				}

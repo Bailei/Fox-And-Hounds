@@ -234,7 +234,7 @@ public class GameLogic {
 	}
 
 //this move no bugs	
-	public List<Operation> doSheepMove(State lastState, List<Operation> lastMove) {
+	public List<Operation> doSheepMove(State lastState, List<Operation> lastMove, GameGraphics view) {
 		check(!lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
@@ -283,7 +283,11 @@ public class GameLogic {
 				|| (xto >= 3 && xto <= 6 && yto >= 2 && yto <= 4))){
 			newArrival = subtract(lastArrival, leaveSheep);
 		}
-		if(checkSheepCanMoveFrom2To(from, to, lastState)){
+		
+		boolean b = checkSheepCanMoveFrom2To(from, to, lastState);
+//		view.testButton4("!!!");
+		if(b){
+//		view.testButton4("&&&&");
 			newB.get(xto).set(yto, lastB.get(xfrom).get(yfrom));
 			newB.get(xfrom).set(yfrom, 0);
 			operations.add(new SetTurn(lastState.getPlayerIds().get(turnOfColor.getOppositeColor().ordinal())));
@@ -707,7 +711,7 @@ public class GameLogic {
 			return doFoxEatMove(lastState);
 		}else{
 //			view.testButton5();
-			return doSheepMove(lastState, lastMove);
+			return doSheepMove(lastState, lastMove, view);
 		}
 	}
 	
