@@ -3,10 +3,10 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="/Applications/eclipse/plugins/guava-16.0.1.jar"/>
-	<classpathentry kind="lib" path="/Applications/eclipse/plugins/mockito-all-1.9.5.jar"/>
-	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER/GWT (1)"/>
-	<classpathentry kind="lib" path="/Applications/eclipse/plugins/guava-gwt-16.0.1.jar"/>
 	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
+	<classpathentry kind="lib" path="/Users/Tao/Desktop/eclipse 2/plugins/guava-16.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/Tao/Desktop/eclipse 2/plugins/guava-gwt-16.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/Tao/Desktop/eclipse 2/plugins/mockito-all-1.9.5.jar"/>
+	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

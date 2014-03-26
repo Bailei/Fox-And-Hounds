@@ -53,9 +53,6 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	@UiField
 	Grid gameGrid;
 	
-//	@UiField
-//	Button moveBtn;
-	
 	public void testButton1() {
 		test1.add(new Button("test1"));
 	}
@@ -151,8 +148,7 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 		for(List<GameImage> imgList : images){
 			res.add(Lists.<Image>newArrayList());
 			j = 0;
-			for(GameImage img : imgList) {
-//				if(img == null) continue;			
+			for(GameImage img : imgList) {		
 				Image image = new Image(gameImageSupplier.getResource(img));
 				
 				final int row = i;
@@ -181,13 +177,11 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 */
 							if(enableClicks){
 								if(presenter.isFoxTurn() && presenter.isMyTurn()){
-//									testButton4("fox turn choose");
 									if(tmp == 1 || tmp == 2 || tmp == 0){
 										presenter.positionSelectedForFox(st);
 									}
 								}else if(presenter.isSheepTurn() && presenter.isMyTurn()){
 									if((tmp >= 3 && tmp <= 22) || tmp == 0){
-//										testButton4("sheep turn choose");
 										presenter.positionSelectedForSheep(st);					
 									}
 								}
@@ -212,21 +206,15 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	    	for(int j = 0; j < 7; j++) {
 	    		FlowPanel imageContainer = new FlowPanel();
 	    		Image tmp = images.get(i).get(j);
-//	    		if(tmp == null) continue;
-//	    		if(tmp != null){
 	    			imageContainer.add(tmp);
 	    			imageContainer.setWidth("100%");
 	    			gameGrid.setWidget(i, j, imageContainer);
-//	    		}
 	    	}
 	    }
 	}
 	  
 	private void disableClicks(){
-//		enableClicksForFox = false;
-//		enableClicksForSheep = false;
 		enableClicks = false;
-//		moveBtn.setEnabled(false);
 	}
 	
 	private void enableClicks(){

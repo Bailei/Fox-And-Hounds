@@ -87,10 +87,8 @@ public final class GameApi {
       lastMove = ImmutableList.copyOf(operations);
       lastGameState = gameState.copy();
       gameState.makeMove(operations);
-      // Verify the move on all players
       for (int playerId : playerIds) {
-//   	  view.testButton5();
-        game.sendVerifyMove(new VerifyMove(playersInfo,
+    	  	game.sendVerifyMove(new VerifyMove(playersInfo,
             gameState.getStateForPlayerId(playerId),
             lastGameState.getStateForPlayerId(playerId), lastMove, lastMovePlayerId,
             playerIdToNumberOfTokensInPot), view);
