@@ -11,7 +11,7 @@ import com.google.common.collect.ImmutableList;
 public class State {
 	private final Color turn;
 	private final ArrayList<ArrayList<Integer>> Board;
-	private final ImmutableList<Integer> playerIds;
+	private final ImmutableList<String> playerIds;
 	private boolean Is_Fox_Move;
 	private boolean Is_Fox_Eat;	
 	private final String From;
@@ -21,14 +21,14 @@ public class State {
 	private final ImmutableList<Integer> EATEN;
 	private final ImmutableList<Integer> ARRIVAL;	
 
-	public State(Color turn, ArrayList<ArrayList<Integer>> Board, ImmutableList<Integer> playerIds, 
+	public State(Color turn, ArrayList<ArrayList<Integer>> Board, ImmutableList<String> immutableList, 
 			boolean Is_Fox_Move, boolean Is_Fox_Eat,
 			ImmutableList<Integer> Fox, ImmutableList<Integer> Sheep,
 			ImmutableList<Integer> EATEN, ImmutableList<Integer> ARRIVAL, String From, String To) {
 		super();
 		this.turn = checkNotNull(turn);
 		this.Board = checkNotNull(Board);
-		this.playerIds = checkNotNull(playerIds);
+		this.playerIds = checkNotNull(immutableList);
 		this.From = From;
 		this.To = To;
 
@@ -45,11 +45,11 @@ public class State {
 		return turn;
 	}
 
-	public ImmutableList<Integer> getPlayerIds(){
+	public ImmutableList<String> getPlayerIds(){
 		return playerIds;
 	}
 	
-	public int getPlayerId(Color color){
+	public String getPlayerId(Color color){
 		return playerIds.get(color.ordinal());
 	}
 	

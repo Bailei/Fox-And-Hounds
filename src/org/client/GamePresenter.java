@@ -3,11 +3,11 @@ package org.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.client.GameApi.Container;
-import org.client.GameApi.Operation;
-import org.client.GameApi.Set;
-import org.client.GameApi.SetTurn;
-import org.client.GameApi.UpdateUI;
+import org.game_api.GameApi.Container;
+import org.game_api.GameApi.Operation;
+import org.game_api.GameApi.Set;
+import org.game_api.GameApi.SetTurn;
+import org.game_api.GameApi.UpdateUI;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -84,8 +84,8 @@ public class GamePresenter {
 	public void updateUI(UpdateUI updateUI){
 		
 		
-		List<Integer> playerIds = updateUI.getPlayerIds();
-		int yourPlayerId = updateUI.getYourPlayerId();
+		List<String> playerIds = updateUI.getPlayerIds();
+		String yourPlayerId = updateUI.getYourPlayerId();
 		int yourPlayerIndex = updateUI.getPlayerIndex(yourPlayerId);
 		myColor = yourPlayerIndex == 0 ? Optional.of(Color.F) : yourPlayerIndex == 1 ? Optional.of(Color.S) : Optional.<Color>absent();
 		selectedPosition = Lists.newArrayList();
@@ -192,7 +192,7 @@ public class GamePresenter {
 				if(selectedPosition.contains(st)){
 					chooseNextPositionForFox();
 //				view.testButton4("!@#$%^");
-				}else if(gameLogic.checkAPositionIsEmpty(st, gameState, view)){				    
+				}else if(gameLogic.checkAPositionIsEmpty(st, gameState)){				    
 						selectedPosition.add(st);
 						chooseNextPositionForFox();
 //				view.testButton4("size2");
@@ -226,10 +226,10 @@ public class GamePresenter {
 					selectedPosition.add(st);
 
 					List<Operation> operations = Lists.newArrayList();
-					operations.add(new SetTurn(-1));
+					operations.add(new SetTurn("-1"));
 					operations.add(new Set("From", selectedPosition.get(0)));
 					operations.add(new Set("To", selectedPosition.get(1)));
-					container.sendMakeMove(gameLogic.doSheepMove(gameState, operations, view), view);				
+					container.sendMakeMove(gameLogic.doSheepMove(gameState, operations));				
 				}else{
 					chooseNextPositionForSheep();
 				}
@@ -239,7 +239,7 @@ public class GamePresenter {
 
 	public void finishFoxMoveSelectPosition() {
 		List<Operation> operations = Lists.newArrayList();
-		operations.add(new SetTurn(-1));
+		operations.add(new SetTurn("-1"));
 		operations.add(new Set("AAA", 1));		
 		operations.add(new Set("From", selectedPosition.get(0)));
 		operations.add(new Set("To", selectedPosition.get(1)));
@@ -248,12 +248,12 @@ public class GamePresenter {
 		
 		if(!gameLogic.checkFoxCanEatFrom2To(from, to, gameState)){
 //			view.testButton4("move!!!");
-			List<Operation> operations_ = gameLogic.foxNormalMove(gameState, operations, view);
-			container.sendMakeMove(operations_, view);
+			List<Operation> operations_ = gameLogic.foxNormalMove(gameState, operations);
+			container.sendMakeMove(operations_);
 		}else{
 //			view.testButton4("eat!!!");
-			List<Operation> operations_ = gameLogic.foxEatMove(gameState, operations, view);
-			container.sendMakeMove(operations_, view);
+			List<Operation> operations_ = gameLogic.foxEatMove(gameState, operations);
+			container.sendMakeMove(operations_);
 		}
 	}
 		
@@ -261,16 +261,16 @@ public class GamePresenter {
 	 * Sends a move.
 	 * The view can only call this method if the presenter passed
 	 */
-	private void sendInitialMove(List<Integer> playerIds){
+	private void sendInitialMove(List<String> playerIds){
 		List<Operation> move = gameLogic.getMoveInitial(playerIds);
-		container.sendMakeMove(move,view);
+		container.sendMakeMove(move);
 	}
 	
 	private void MakeDoFoxNormalMove(){		
-		container.sendMakeMove(gameLogic.doFoxNormalMove(gameState, view),view);
+		container.sendMakeMove(gameLogic.doFoxNormalMove(gameState));
 	}
 	
 	private void MakeDoFoxEatMove(){
-		container.sendMakeMove(gameLogic.doFoxEatMove(gameState),view);
+		container.sendMakeMove(gameLogic.doFoxEatMove(gameState));
 	}	
 }

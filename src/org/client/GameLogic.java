@@ -10,15 +10,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.client.GameApi.Delete;
-import org.client.GameApi.EndGame;
-import org.client.GameApi.Operation;
-import org.client.GameApi.Set;
-import org.client.GameApi.SetTurn;
-import org.client.GameApi.SetVisibility;
-import org.client.GameApi.Shuffle;
-import org.client.GameApi.VerifyMove;
-import org.client.GameApi.VerifyMoveDone;
+import org.game_api.GameApi.Delete;
+import org.game_api.GameApi.EndGame;
+import org.game_api.GameApi.Operation;
+import org.game_api.GameApi.Set;
+import org.game_api.GameApi.SetTurn;
+import org.game_api.GameApi.SetVisibility;
+import org.game_api.GameApi.Shuffle;
+import org.game_api.GameApi.VerifyMove;
+import org.game_api.GameApi.VerifyMoveDone;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -39,17 +39,17 @@ public class GameLogic {
 	private static final String From = "From";
 	private static final String To = "To";
 
-	public VerifyMoveDone verify(VerifyMove verifyMove, GameGraphics view) {
+	public VerifyMoveDone verify(VerifyMove verifyMove) {
 		try{
-			checkMoveIsLegal(verifyMove, view);
+			checkMoveIsLegal(verifyMove);
 			return new VerifyMoveDone();
 		}catch(Exception e){
 			return new VerifyMoveDone(verifyMove.getLastMovePlayerId(), e.getMessage());
 		}
 	}
   
-	void checkMoveIsLegal(VerifyMove verifyMove, GameGraphics view){
-		List<Operation> expectedOperations = getExpectedOperations(verifyMove, view);
+	void checkMoveIsLegal(VerifyMove verifyMove){
+		List<Operation> expectedOperations = getExpectedOperations(verifyMove);
 //		view.testButton5();
 	    List<Operation> lastMove = verifyMove.getLastMove();
 	    check(expectedOperations.equals(lastMove));		
@@ -61,7 +61,7 @@ public class GameLogic {
 	    }
 	}
   	
-	List<Operation> foxNormalMove(State lastState, List<Operation> lastMove, GameGraphics view) {
+	List<Operation> foxNormalMove(State lastState, List<Operation> lastMove) {
 		check(!lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
 //		view.testButton4("normal move");
@@ -79,7 +79,7 @@ public class GameLogic {
 		String from = (String) setFrom.getValue();
 		String to = (String) setTo.getValue();
 		boolean b1 = checkAPositionIsFox(from, lastState);		
-		boolean b2 = checkFoxCanMoveFrom2To(from, to, lastState, view);	
+		boolean b2 = checkFoxCanMoveFrom2To(from, to, lastState);	
 		boolean b3 = checkFoxCanEat(from, lastState);
 		String anotherFox = findAnotherFox(from, lastState);
 		boolean b4 = checkFoxCanEat(anotherFox, lastState);
@@ -95,7 +95,7 @@ public class GameLogic {
 	}
 
 //this move no bugs
-	List<Operation> doFoxNormalMove(State lastState, GameGraphics view) {
+	List<Operation> doFoxNormalMove(State lastState) {
 		check(lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
@@ -120,7 +120,7 @@ public class GameLogic {
 		}
 		String anotherFox = findAnotherFox(from, lastState);
 		
-		if(checkAPositionIsFox(from, lastState) && checkAPositionIsEmpty(to, lastState, view)
+		if(checkAPositionIsFox(from, lastState) && checkAPositionIsEmpty(to, lastState)
 				&& !checkFoxCanEat(from, lastState) && !checkFoxCanEat(anotherFox, lastState)){
 			int xfrom = Integer.valueOf(from) / 10;
 			int yfrom = Integer.valueOf(from) % 10;		
@@ -138,7 +138,7 @@ public class GameLogic {
 		return operations;
 	}
 
-	List<Operation> foxEatMove(State lastState, List<Operation> lastMove, GameGraphics view) {
+	List<Operation> foxEatMove(State lastState, List<Operation> lastMove) {
 		check(!lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
@@ -234,7 +234,7 @@ public class GameLogic {
 	}
 
 //this move no bugs	
-	public List<Operation> doSheepMove(State lastState, List<Operation> lastMove, GameGraphics view) {
+	public List<Operation> doSheepMove(State lastState, List<Operation> lastMove) {
 		check(!lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
 		//The order of operations: turn, Is_Fox_Move, Is_Fox_Eat, From, To, Board, F, S, EATEN, ARRIVAL
@@ -481,7 +481,7 @@ public class GameLogic {
 		}
 	}
 	
-	boolean checkFoxCanMoveFrom2To(String from, String to, State lastState, GameGraphics view) {
+	boolean checkFoxCanMoveFrom2To(String from, String to, State lastState) {
 		int xfrom = Integer.valueOf(from) / 10;
 		int yfrom = Integer.valueOf(from) % 10;
 		int xto = Integer.valueOf(to) / 10;
@@ -599,7 +599,7 @@ public class GameLogic {
 		return false;
 	}
 	
-	boolean checkAPositionIsEmpty(String st, State lastState, GameGraphics view){
+	boolean checkAPositionIsEmpty(String st, State lastState){
 //		view.testButton4(st + "^^");
 		ArrayList<ArrayList<Integer>> lastB = lastState.getBoard();
 		int x = Integer.valueOf(st) / 10;
@@ -646,7 +646,7 @@ public class GameLogic {
 		return newArrival.size();
 	}	
 
-	List<Operation> getMoveInitial(List<Integer> playerIds){
+	List<Operation> getMoveInitial(List<String> playerIds){
 		ArrayList<ArrayList<Integer>> board = new ArrayList<ArrayList<Integer>>();
 		List<Integer> row1 = Arrays.<Integer>asList(-1, -1,  1,  0,  2, -1, -1);
 		List<Integer> row2 = Arrays.<Integer>asList(-1, -1,  0,  0,  0, -1, -1);
@@ -663,8 +663,8 @@ public class GameLogic {
 		board.add(new ArrayList<Integer>(row6));
 		board.add(new ArrayList<Integer>(row7));
 
-	    int fPlayerId = playerIds.get(0);
-	    int sPlayerId = playerIds.get(1);
+	    String fPlayerId = playerIds.get(0);
+	    String sPlayerId = playerIds.get(1);
 		List<Operation> operations = Lists.newArrayList();
 		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, F, S, EATEN, ARRIVAL
 		operations.add(new SetTurn(fPlayerId));
@@ -677,16 +677,16 @@ public class GameLogic {
 	}
 	
 	@SuppressWarnings("unchecked")
-	List<Operation> getExpectedOperations(VerifyMove verifyMove, GameGraphics view){
+	List<Operation> getExpectedOperations(VerifyMove verifyMove){
 		List<Operation> lastMove = verifyMove.getLastMove();
 	    Map<String, Object> lastApiState = verifyMove.getLastState();
-	    List<Integer> playerIds = verifyMove.getPlayerIds();
+	    List<String> playerIds = verifyMove.getPlayerIds();
 	
 	    if (lastApiState.isEmpty()) {
 	      return getMoveInitial(playerIds);
 	    }
 	   
-	    int lastMovePlayerId = verifyMove.getLastMovePlayerId();
+	    String lastMovePlayerId = verifyMove.getLastMovePlayerId();
 	    State lastState = gameApiStateToState(lastApiState,
 	            Color.values()[playerIds.indexOf(lastMovePlayerId)], playerIds);
 
@@ -698,20 +698,20 @@ public class GameLogic {
 //	    view.testButton4("" + lastMove.size());
 		if(lastMove.contains(new Set(Is_Fox_Move, Yes))){
 			//view.testButton1();
-			return foxNormalMove(lastState, lastMove, view);
+			return foxNormalMove(lastState, lastMove);
 			//return new ArrayList<Operation>();
 		}else if(lastMove.contains(new Delete(Is_Fox_Move))){
 //			view.testButton2();
-			return doFoxNormalMove(lastState, view);
+			return doFoxNormalMove(lastState);
 		}else if(lastMove.contains(new Set(Is_Fox_Eat, Yes))){
 //			view.testButton3();
-			return foxEatMove(lastState, lastMove, view);
+			return foxEatMove(lastState, lastMove);
 		}else if(lastMove.contains(new Delete(Is_Fox_Eat))){
 //			view.testButton4("11111");
 			return doFoxEatMove(lastState);
 		}else{
 //			view.testButton5();
-			return doSheepMove(lastState, lastMove, view);
+			return doSheepMove(lastState, lastMove);
 		}
 	}
 	
@@ -729,7 +729,7 @@ public class GameLogic {
 	
 	@SuppressWarnings("unchecked")
 	State gameApiStateToState(Map<String, Object> gameApiState,
-			Color turnOfColor, List<Integer> playerIds){
+			Color turnOfColor, List<String> playerIds){
 		String fromValue = (String)gameApiState.get(From);
 		String toValue = (String)gameApiState.get(To);
 	    List<Integer> f = (List<Integer>) gameApiState.get(F);
