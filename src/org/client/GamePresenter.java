@@ -66,15 +66,15 @@ public class GamePresenter {
 	}
 	
 	private final GameLogic gameLogic = new GameLogic();
-	//private final View view;
-	private final GameGraphics view;
+	private final View view;
+	//private final GameGraphics view;
 	private final Container container;
 	//A viewer doesn't have a color 
 	private Optional<Color> myColor;
 	private State gameState;
 	private List<String> selectedPosition;
 	
-	public GamePresenter(/*View view*/GameGraphics view, Container container){
+	public GamePresenter(View view /*GameGraphics view*/, Container container){
 		this.view = view;
 		this.container = container;
 		view.setPresenter(this);

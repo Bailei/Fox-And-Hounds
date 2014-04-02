@@ -21,5 +21,5 @@
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>
   <source path='graphics'/>
-  <source path='game_api'>
+  <source path='game_api'/>
 </module>

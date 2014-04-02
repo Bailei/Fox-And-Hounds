@@ -82,7 +82,8 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	private final GameImageSupplier gameImageSupplier;
 	private GamePresenter presenter;
 	private State gameState;
-//	private Image[][] board = new Image[7][7];
+	
+	private PieceMovingAnimation animation;
 	
 	public GameGraphics(){
 		GameImages gameImages = GWT.create(GameImages.class);

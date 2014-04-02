@@ -20,8 +20,9 @@ import com.google.gwt.user.client.ui.RootPanel;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class GameEntryPoint implements EntryPoint{
-	ContainerConnector container;
+	//ContainerConnector container;
 	GamePresenter gamePresenter;
+	IteratingPlayerContainer container;
 	
 	@Override
 	public void onModuleLoad(){
@@ -36,14 +37,31 @@ public class GameEntryPoint implements EntryPoint{
 				gamePresenter.updateUI(updateUI);
 			}
 		};
-		container = new ContainerConnector(game);
+		//container = new ContainerConnector(game);
+		container = new IteratingPlayerContainer(game, 2);
 		GameGraphics gameGraphics = new GameGraphics();
 		gamePresenter = new GamePresenter(gameGraphics, container);
 
+		final ListBox playerSelect = new ListBox();
+		playerSelect.addItem("FoxPlayer");
+		playerSelect.addItem("SheepPlayer");
+		playerSelect.addItem("Viewer");
+		playerSelect.addChangeHandler(new ChangeHandler(){
+			@Override
+			public void onChange(ChangeEvent event){
+				int selectedIndex = playerSelect.getSelectedIndex();
+				String playerId = selectedIndex == 2 ? GameApi.VIEWER_ID
+						: container.getPlayerIds().get(selectedIndex);
+				container.updateUi(playerId);
+			}
+		});
+		
 		FlowPanel flowPanel = new FlowPanel();
 		flowPanel.add(gameGraphics);
+		flowPanel.add(playerSelect);
 		RootPanel.get("mainDiv").add(flowPanel);
 		
 		container.sendGameReady();
+		container.updateUi(container.getPlayerIds().get(0));		
 	}	
 }
