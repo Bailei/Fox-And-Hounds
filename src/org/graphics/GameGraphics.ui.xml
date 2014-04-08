@@ -16,33 +16,18 @@
 	     margin-top : 0px;
 	     gwt-image: "backgroud";
     }
-  </ui:style>
- <!--<g:HTMLPanel styleName = "{style.back}">  -->   
+  </ui:style>  
   <g:HorizontalPanel>
     <g:HTMLPanel>
       <div class = "{css.back}">
         <g:Grid ui:field="gameGrid" styleName="{css.board}"/>
       </div>
     </g:HTMLPanel>
-    <!--
-    <g:VerticalPanel> 
-      <g:Button ui:field="moveBtn" text="Confirm Move"/>
-    </g:VerticalPanel>  
-      -->  
-    <g:VerticalPanel>  
-      <g:HorizontalPanel width="30px" height="40px" ui:field="test1"/>
+    
+    <g:VerticalPanel>
+        <g:Button ui:field="animationImplement" height="30px" width="160px" text="Animation Implement"/>
+    	<g:FlexTable height="135px" width="135px" ui:field="animationArea"/>
     </g:VerticalPanel>
-        <g:VerticalPanel>  
-      <g:HorizontalPanel width="30px" height="40px" ui:field="test2"/>
-    </g:VerticalPanel>
-        <g:VerticalPanel>  
-      <g:HorizontalPanel width="30px" height="40px" ui:field="test3"/>
-    </g:VerticalPanel>
-        <g:VerticalPanel>  
-      <g:HorizontalPanel width="30px" height="40px" ui:field="test4"/>
-    </g:VerticalPanel>
-        <g:VerticalPanel>  
-      <g:HorizontalPanel width="30px" height="40px" ui:field="test5"/>
-    </g:VerticalPanel>
+    
   </g:HorizontalPanel>
 </ui:UiBinder> 

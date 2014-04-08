@@ -5,6 +5,7 @@ import com.google.gwt.media.client.Audio;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.RootPanel;
 
 public class PieceMovingAnimation extends Animation {
 
@@ -22,21 +23,21 @@ public class PieceMovingAnimation extends Animation {
                 start = startImage;
                 end = endImage;
                 piece = startRes;
-                transform = endRes == null ? startRes : endRes;
-                panel = (AbsolutePanel) start.getParent();
-                startX = panel.getWidgetLeft(start);
-                startY = panel.getWidgetTop(start);
+                panel = RootPanel.get();
+                
+                startX = start.getAbsoluteLeft();
+                startY = start.getAbsoluteTop();
+                
                 startWidth = startImage.getWidth();
                 startHeight = startImage.getHeight();
-                endX = panel.getWidgetLeft(end);
-                endY = panel.getWidgetTop(end);
-                soundAtEnd = sfx;
+                
+                endX = end.getAbsoluteLeft();
+                endY = end.getAbsoluteTop();
                 cancelled = false;
-
-                start.setResource(blankRes);
-                moving = new Image(startRes);
+                soundAtEnd = sfx;
+                
+                moving = start;
                 moving.setPixelSize(startWidth, startHeight);
-                panel.add(moving, startX, startY);
         }
 
         @Override
@@ -51,8 +52,6 @@ public class PieceMovingAnimation extends Animation {
                 y -= (height - startHeight) / 2;
 
                 panel.remove(moving);
-                moving = new Image(piece.getSafeUri());
-                moving.setPixelSize(width, height);
                 panel.add(moving, x, y);
         }
 
@@ -65,10 +64,16 @@ public class PieceMovingAnimation extends Animation {
         @Override
         protected void onComplete() {
                 if (!cancelled) {
-                        if (soundAtEnd != null)
-                                soundAtEnd.play();
+                		if(soundAtEnd != null)
+                			soundAtEnd.play();
                         end.setResource(transform);
                         panel.remove(moving);
                 }
         }
+        
+    	//Just for test
+    	private native void test(String message) /*-{
+    		$wnd.alert(message);
+    	}-*/;
+ 
 }

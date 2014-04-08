@@ -19,12 +19,8 @@ public class GameImageSupplier{
 			return getFoxImage();
 		case SHEEP:
 			return getSheepImage();
-		case BOARD:
-			return getBoardImage();
 		case EMPTY:
 			return getEmptyImage();
-		case WRONGPLACE:
-			return getWrongPlaceImage();
 		default:
 			throw new RuntimeException("Forgot kind=" + gameImage.kind);
 		}
@@ -37,16 +33,7 @@ public class GameImageSupplier{
 	private ImageResource getFoxImage() {
 		return gameImages.fox();
 	}
-	
-	private ImageResource getBoardImage() {
-		return gameImages.board();
-	}
-	
 	private ImageResource getEmptyImage() {
 		return gameImages.empty();
-	}
-	
-	private ImageResource getWrongPlaceImage() {
-		return gameImages.wrongplace();
 	}
 }

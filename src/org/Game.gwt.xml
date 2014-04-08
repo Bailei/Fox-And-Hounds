@@ -22,4 +22,5 @@
   <source path='client'/>
   <source path='graphics'/>
   <source path='game_api'/>
+  <source path='sounds'/>
 </module>

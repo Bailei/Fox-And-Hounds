@@ -11,19 +11,27 @@ import org.client.State;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.gwt.animation.client.Animation;
 import com.google.gwt.core.shared.GWT;
+import com.google.gwt.dom.client.AudioElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.media.client.Audio;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HTMLTable.CellFormatter;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
+
+import org.sounds.GameSounds;
 
 /**
  * Graphics for the game.
@@ -31,65 +39,43 @@ import com.google.gwt.user.client.ui.Widget;
 public class GameGraphics extends Composite implements GamePresenter.View {
 	public interface GameGraphicsUiBinder extends UiBinder<Widget, GameGraphics>{	
 	}
-
-	@UiField
-	HorizontalPanel test1;
-	
-	@UiField
-	HorizontalPanel test2;
-	
-	@UiField
-	HorizontalPanel test3;
-	
-	@UiField
-	HorizontalPanel test4;
-	
-	@UiField
-	HorizontalPanel test5;
 	
 	@UiField
 	GameCss css;
 	
 	@UiField
 	Grid gameGrid;
-	
-	public void testButton1() {
-		test1.add(new Button("test1"));
-	}
-	
-	public void testButton2() {
-		test2.add(new Button("test2"));
-	}
-	
-	public void testButton3() {
-		test3.add(new Button("test3"));
-	}
-	
-	public void testButton4(String str) {
-		test4.add(new Button(str));
-	}
-	
-	public void testButton5() {
-		test5.add(new Button("test5"));
-	}
 
-//	private boolean fox = true;
-//	private boolean sheep = false;
-//	private boolean enableClicksForFox = false;
-//	private boolean enableClicksForSheep = false;
-	//private boolean enableClicksFoxEmpty = false;
+	@UiField
+	FlexTable animationArea;
+	
+	@UiField
+	Button animationImplement;
+	
 	private boolean enableClicks = false;	
 	private final GameImageSupplier gameImageSupplier;
 	private GamePresenter presenter;
 	private State gameState;
-	
-	private PieceMovingAnimation animation;
+	private Audio pieceDown;
+	private boolean clicked = false;
 	
 	public GameGraphics(){
+		final AnimationDemo ai = GWT.create(AnimationDemo.class);
 		GameImages gameImages = GWT.create(GameImages.class);
+	    GameSounds gameSounds = GWT.create(GameSounds.class);
 		this.gameImageSupplier = new GameImageSupplier(gameImages);
 		GameGraphicsUiBinder uiBinder = GWT.create(GameGraphicsUiBinder.class);
 		initWidget(uiBinder.createAndBindUi(this));
+		
+		animationImp(ai);
+		
+		if (Audio.isSupported()) {
+		      pieceDown = Audio.createIfSupported();
+		      pieceDown.addSource(gameSounds.pieceDownMp3().getSafeUri()
+		                      .asString(), AudioElement.TYPE_MP3);
+		      pieceDown.addSource(gameSounds.pieceDownWav().getSafeUri()
+		                      .asString(), AudioElement.TYPE_WAV);
+		}
 		
 		gameGrid.resize(7, 7);
 		gameGrid.setCellPadding(0);
@@ -161,21 +147,8 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 						public void onClick(ClickEvent event){
 							
 							String st = row * 10 + col + "";
-//							testButton4("***" + st);
 							int tmp = b.get(row).get(col);
-/*							
-							if(enableClicksForFox){
-									testButton4("fox turn choose");
-								if(tmp == 1 || tmp == 2 || tmp == 0){
-									presenter.positionSelectedForFox(st);
-								}
-							}else if(enableClicksForSheep){
-								if((tmp >= 3 && tmp <= 22) || tmp == 0){
-									testButton4("sheep turn choose");
-									presenter.positionSelectedForSheep(st);					
-								}
-							}
-*/
+
 							if(enableClicks){
 								if(presenter.isFoxTurn() && presenter.isMyTurn()){
 									if(tmp == 1 || tmp == 2 || tmp == 0){
@@ -230,40 +203,87 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	@Override
 	public void setViewerState(ArrayList<ArrayList<Integer>> board) {
 		placeImages(gameGrid, createGridImage(board));
-//		disableClicks();
+		disableClicks();
 	}
 
 	@Override
 	public void setPlayerState(ArrayList<ArrayList<Integer>> board) {
         List<List<Image>> images = createGridImage(board);
 		placeImages(gameGrid, images);
-//		testButton4("Sheep EATEN: " + state.getEATEN().size());
-//		testButton4("Sheep ARRIVAL: " + state.getARRIVAL().size());
 		disableClicks();
 	}	
 	
 	@Override
 	public void chooseNextPositionForSheep(List<String> SelectedPosition,
 			ArrayList<ArrayList<Integer>> board) {
-//        List<List<Image>> images = createGridImage(board);
-//		enableClicksForFox = true;
-//		enableClicksForSheep = false;
 		enableClicks = true;
-//		testButton4("chooseNextPosition");
-//		if(SelectedPosition.size() == 2){
-//			presenter.finishSheepMoveSelectPosition();
-//		}
 	}
 
 	@Override
 	public void chooseNextPositionForFox(List<String> SelectedPosition,
 			ArrayList<ArrayList<Integer>> board) {
-//        List<List<Image>> images = createGridImage(board);
-//		enableClicksForSheep = true;
-//		enableClicksForFox = false;
 		enableClicks = true;
-		if(SelectedPosition.size() == 2){			
+		if(SelectedPosition.size() == 2){
+			playPieceDownSound();
 			presenter.finishFoxMoveSelectPosition();
 		}
 	}		
+	
+	@Override
+	public void playPieceDownSound() {
+		if (pieceDown != null) {
+			pieceDown.play();
+		}
+	}
+	
+	//Just for test
+	private native void test(String message) /*-{
+		$wnd.alert(message);
+	}-*/;
+	
+	private void animationImp(final AnimationDemo ai){
+		animationArea.clear();
+		final Image wolf = new Image(ai.wolf());
+		wolf.addClickHandler(new ClickHandler(){
+			@Override
+			public void onClick(ClickEvent event){
+				clicked = true;
+			}
+		});
+		final int width = wolf.getWidth();
+		final int height = wolf.getHeight();
+		
+		animationArea.setBorderWidth(2);
+		CellFormatter cf = animationArea.getCellFormatter();
+		
+		for(int i = 0; i < 3; i++){
+			for(int j = 0; j < 3; j++){
+				cf.setWidth(i, j, "45px");
+				cf.setHeight(i, j, "45px");
+				final SimplePanel simplePanel = new SimplePanel();
+				simplePanel.setPixelSize(width, height);
+				animationArea.setWidget(i, j, simplePanel);
+				
+				final Image empty = new Image(ai.empty());
+				empty.setPixelSize(width, height);
+				simplePanel.add(empty);
+				
+				empty.addClickHandler(new ClickHandler(){
+					@Override
+					public void onClick(ClickEvent event){
+						if(clicked){
+							Animation animation = new PieceMovingAnimation(wolf, empty, ai.wolf(), ai.empty(), ai.empty(), pieceDown);
+							animation.run(1200);
+						}
+						clicked = false;
+					}
+				});
+				
+				if(i == 1 && j == 1){
+					simplePanel.setWidget(wolf);
+				}
+			}
+		}
+	}
+	
 }

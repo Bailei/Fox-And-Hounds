@@ -14,6 +14,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import org.graphics.GameGraphics;
+//import org.sounds.GameSounds;
 
 /**
  * The presenter that controls the game graphics.
@@ -53,28 +54,20 @@ public class GamePresenter {
 		void chooseNextPositionForSheep(List<String> SelectedPosition, ArrayList<ArrayList<Integer>> board);
 		
 		void chooseNextPositionForFox(List<String> SelectedPosition, ArrayList<ArrayList<Integer>> board);
-	
-		 public void testButton1();
-		 
-		 public void testButton2();
-		 
-		 public void testButton3();
-		 
-		 public void testButton4(String str);
-		 
-		 public void testButton5();
+		
+		void playPieceDownSound();
 	}
 	
 	private final GameLogic gameLogic = new GameLogic();
 	private final View view;
-	//private final GameGraphics view;
 	private final Container container;
 	//A viewer doesn't have a color 
 	private Optional<Color> myColor;
 	private State gameState;
 	private List<String> selectedPosition;
+	private GameGraphics gameGraphics = new GameGraphics();
 	
-	public GamePresenter(View view /*GameGraphics view*/, Container container){
+	public GamePresenter(View view, Container container){
 		this.view = view;
 		this.container = container;
 		view.setPresenter(this);
@@ -179,7 +172,6 @@ public class GamePresenter {
 	public void positionSelectedForFox(String st){
 		check(isMyTurn() && isFoxTurn() && !gameState.Is_Fox_Move() && !gameState.Is_Fox_Eat());
 			if(selectedPosition.size() == 0){
-//				view.testButton4("size0");
 				if(gameLogic.checkAPositionIsFox(st, gameState) && (gameLogic.checkFoxCanMove(st, gameState) || gameLogic.checkFoxCanEat(st, gameState))){
 					selectedPosition.add(st);
 					chooseNextPositionForFox();	
@@ -187,17 +179,13 @@ public class GamePresenter {
 					chooseNextPositionForFox();
 				}	
 			}else if(selectedPosition.size() == 1){	
-//				view.testButton4("size1");
 				String from = selectedPosition.get(0);
 				if(selectedPosition.contains(st)){
 					chooseNextPositionForFox();
-//				view.testButton4("!@#$%^");
 				}else if(gameLogic.checkAPositionIsEmpty(st, gameState)){				    
 						selectedPosition.add(st);
 						chooseNextPositionForFox();
-//				view.testButton4("size2");
 				}else{
-//				view.testButton4("!!!!!!!");
 					chooseNextPositionForFox();
 				}
 			}
@@ -222,14 +210,14 @@ public class GamePresenter {
 				if(selectedPosition.contains(st)){
 					chooseNextPositionForSheep();
 				}else if(gameLogic.checkSheepCanMoveFrom2To(from, st, gameState)){
-//					view.testButton4("checkSheepCanMoveFrom2To");
 					selectedPosition.add(st);
 
 					List<Operation> operations = Lists.newArrayList();
 					operations.add(new SetTurn("-1"));
 					operations.add(new Set("From", selectedPosition.get(0)));
 					operations.add(new Set("To", selectedPosition.get(1)));
-					container.sendMakeMove(gameLogic.doSheepMove(gameState, operations));				
+					gameGraphics.playPieceDownSound();
+					container.sendMakeMove(gameLogic.doSheepMove(gameState, operations));
 				}else{
 					chooseNextPositionForSheep();
 				}
@@ -247,14 +235,12 @@ public class GamePresenter {
 		String to = selectedPosition.get(1);
 		
 		if(!gameLogic.checkFoxCanEatFrom2To(from, to, gameState)){
-//			view.testButton4("move!!!");
-			List<Operation> operations_ = gameLogic.foxNormalMove(gameState, operations);
-			container.sendMakeMove(operations_);
+			container.sendMakeMove(gameLogic.foxNormalMove(gameState, operations));
 		}else{
-//			view.testButton4("eat!!!");
-			List<Operation> operations_ = gameLogic.foxEatMove(gameState, operations);
-			container.sendMakeMove(operations_);
+			container.sendMakeMove(gameLogic.foxEatMove(gameState, operations));
 		}
+		
+		
 	}
 		
 	/**
@@ -273,4 +259,10 @@ public class GamePresenter {
 	private void MakeDoFoxEatMove(){
 		container.sendMakeMove(gameLogic.doFoxEatMove(gameState));
 	}	
+	
+	
+	//Just for test
+	private native void test(String message) /*-{
+		$wnd.alert(message);
+	}-*/;
 }

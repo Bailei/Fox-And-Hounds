@@ -42,6 +42,7 @@ public class GameEntryPoint implements EntryPoint{
 		GameGraphics gameGraphics = new GameGraphics();
 		gamePresenter = new GamePresenter(gameGraphics, container);
 
+		
 		final ListBox playerSelect = new ListBox();
 		playerSelect.addItem("FoxPlayer");
 		playerSelect.addItem("SheepPlayer");
@@ -55,6 +56,7 @@ public class GameEntryPoint implements EntryPoint{
 				container.updateUi(playerId);
 			}
 		});
+		
 		
 		FlowPanel flowPanel = new FlowPanel();
 		flowPanel.add(gameGraphics);
