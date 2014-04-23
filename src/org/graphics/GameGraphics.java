@@ -46,11 +46,11 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	@UiField
 	Grid gameGrid;
 
-	@UiField
-	FlexTable animationArea;
+//	@UiField
+//	FlexTable animationArea;
 	
-	@UiField
-	Button animationImplement;
+//	@UiField
+//	Button animationImplement;
 	
 	private boolean enableClicks = false;	
 	private final GameImageSupplier gameImageSupplier;
@@ -67,7 +67,7 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 		GameGraphicsUiBinder uiBinder = GWT.create(GameGraphicsUiBinder.class);
 		initWidget(uiBinder.createAndBindUi(this));
 		
-		animationImp(ai);
+//		animationImp(ai);
 		
 		if (Audio.isSupported()) {
 		      pieceDown = Audio.createIfSupported();
@@ -241,6 +241,7 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 		$wnd.alert(message);
 	}-*/;
 	
+/*	
 	private void animationImp(final AnimationDemo ai){
 		animationArea.clear();
 		final Image wolf = new Image(ai.wolf());
@@ -285,5 +286,5 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 			}
 		}
 	}
-	
+*/
 }
