@@ -18,8 +18,8 @@
 	     gwt-image: "backgroud";
     }
   </ui:style>  
-  <g:HorizontalPanel>
-    <g:HTMLPanel>
+    <g:AbsolutePanel ui:field="abPanel">
+    <g:HTMLPanel height="420px" width="400px">
       <div class = "{css.back}">
         <g:Grid ui:field="gameGrid" styleName="{css.board}"/>
       </div>
@@ -31,5 +31,5 @@
     </g:VerticalPanel>
 -->
     
-  </g:HorizontalPanel>
+   	</g:AbsolutePanel>
 </ui:UiBinder> 

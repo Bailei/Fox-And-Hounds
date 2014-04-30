@@ -20,6 +20,7 @@ import com.google.gwt.media.client.Audio;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.Grid;
@@ -30,6 +31,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 
 import org.sounds.GameSounds;
 
@@ -45,6 +47,9 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	
 	@UiField
 	Grid gameGrid;
+	
+	@UiField
+	AbsolutePanel abPanel;
 
 //	@UiField
 //	FlexTable animationArea;
@@ -67,6 +72,8 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 		GameGraphicsUiBinder uiBinder = GWT.create(GameGraphicsUiBinder.class);
 		initWidget(uiBinder.createAndBindUi(this));
 		
+		abPanel.setPixelSize(400, 420);
+				
 //		animationImp(ai);
 		
 		if (Audio.isSupported()) {
