@@ -1,6 +1,7 @@
 Welcome to game Halatafl
 ========
 **Introduction:**
+
 Halatafl means "tail board", in Old Norse, and "tail" presumably refers to a fox's tail. As in modern Swedish for "the Fox game".(http://en.wikipedia.org/wiki/Fox_games)
 
 There are two fox and 20 sheep. The objective is for the sheep to reach a certain destination on the board, the square of nine holes marked with dark green, and it is the foxes' objective to stop the sheep from reaching it. 
