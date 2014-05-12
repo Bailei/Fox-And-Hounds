@@ -77,13 +77,13 @@ public class GamePresenter {
 	private State gameState;
 	private List<String> selectedPosition;
 	private GameGraphics gameGraphics = new GameGraphics();
-//	private final I18nMessages i18n;
+	private I18nMessages messages;
 	
 	public GamePresenter(View view, Container container){
 		this.view = view;
 		this.container = container;
 		view.setPresenter(this);
-//		this.i18n = (I18nMessages) GWT.create(I18nMessages.class);
+		messages = (I18nMessages)GWT.create(I18nMessages.class);
 	}
 	
 	//Updates the presenter and the view with the state in updateUI
@@ -146,7 +146,7 @@ public class GamePresenter {
 			}
 		  }
 		  else {
-			chooseNextPositionForSheepAuto();
+			  chooseNextPositionForSheepAuto();
 		  }
 		}
 	}
@@ -162,12 +162,12 @@ public class GamePresenter {
 	   */
 	public void checkGameOver() {
 	    if (gameLogic.getHowManySheepHaveBeenEaten(gameState.getEATEN()) == 12) { 
-	    	String winner = "Fox Won!";
-	    	view.displayResult(winner);
+//	    	view.displayResult("Fox Won!");
+	    	view.displayResult(messages.foxWon());
 	    }
 	    else if (gameLogic.getHowManySheepHaveBeenArrived(gameState.getARRIVAL()) == 9) { 
-	    	String winner = "Sheep Won!";
-	    	view.displayResult(winner);
+//	    	view.displayResult("Sheep Won!");
+	    	view.displayResult(messages.sheepWon());
 	    }
 	}
 	
