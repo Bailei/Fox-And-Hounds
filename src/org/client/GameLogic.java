@@ -24,6 +24,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.gwt.user.client.Window;
 
 import org.graphics.GameGraphics;
 
@@ -50,7 +51,6 @@ public class GameLogic {
   
 	void checkMoveIsLegal(VerifyMove verifyMove){
 		List<Operation> expectedOperations = getExpectedOperations(verifyMove);
-//		view.testButton5();
 	    List<Operation> lastMove = verifyMove.getLastMove();
 	    check(expectedOperations.equals(lastMove));		
 		// We use SetTurn, so we don't need to check that the correct player did the move.
@@ -64,7 +64,6 @@ public class GameLogic {
 	List<Operation> foxNormalMove(State lastState, List<Operation> lastMove) {
 		check(!lastState.Is_Fox_Move());
 		check(!lastState.Is_Fox_Eat());
-//		view.testButton4("normal move");
 		//The order of operations: turn, Board, Is_Fox_Move, Is_Fox_Eat, From, To, F, S, EATEN, ARRIVAL
 		Color turnOfColor = lastState.getTurn();
 		List<Operation> operations = Lists.newArrayList();
@@ -225,7 +224,7 @@ public class GameLogic {
 			operations.add(new Set(S, newS));
 			operations.add(new Set(EATEN, newEaten));
 			operations.add(new Set(ARRIVAL, newArrival));
-			
+		
 			if(getHowManySheepHaveBeenEaten(newEaten) >= 12){
 				operations.add(new EndGame(lastState.getPlayerId(turnOfColor)));
 			}
@@ -259,10 +258,8 @@ public class GameLogic {
 			for(int j=0;j<7;j++) {
 				newB.get(i).add(lastB.get(i).get(j));
 			}
-		}
-		
-		List<Integer> lastArrival = lastState.getARRIVAL();
-		
+		}		
+		List<Integer> lastArrival = lastState.getARRIVAL();		
 		int xfrom = Integer.valueOf(from) / 10;
 		int yfrom = Integer.valueOf(from) % 10;	
 		int xto = Integer.valueOf(to) / 10;
@@ -270,24 +267,24 @@ public class GameLogic {
 		check((Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 1) ||
 				(Math.abs(xfrom-xto) == 0 && Math.abs(yfrom - yto) == 1) || 
 				(Math.abs(xfrom-xto) == 1 && Math.abs(yfrom - yto) == 0));
-
 		List<Integer> newArrival = lastArrival;
 		List<Integer> leaveSheep = ImmutableList.<Integer>of(lastB.get(xfrom).get(yfrom));
 		if(((xfrom >= 0 && xfrom <= 2 && yfrom >= 0 && yfrom <= 6) 
 				|| (xfrom >= 5 && xfrom <= 6 && yfrom >= 0 && yfrom <= 6)
-				|| (xfrom >= 3 && xfrom <= 6 && yfrom >= 2 && yfrom <= 4)) && (xto >= 0 && xto <= 2 && yto >= 2 && yto <= 4)){
-			newArrival = concat(newArrival, leaveSheep);
+				|| (xfrom >= 3 && xfrom <= 6 && yfrom >= 2 && yfrom <= 4)) 
+				&& (xto >= 0 && xto <= 2 && yto >= 2 && yto <= 4)){
+			if(!newArrival.contains(lastB.get(xfrom).get(yfrom))){
+				newArrival = concat(newArrival, leaveSheep);
+			}
 		}
-		if((xfrom >= 0 && xfrom <= 2 && yfrom >= 2 && yfrom <= 4) && ((xto >= 0 && xto <= 2 && yto >= 0 && yto <= 6) 
+		if((xfrom >= 0 && xfrom <= 2 && yfrom >= 2 && yfrom <= 4) 
+				&& ((xto >= 2 && xto <= 4 && yto >= 0 && yto <= 2) 
 				|| (xto >= 5 && xto <= 6 && yto >= 0 && yto <= 6)
-				|| (xto >= 3 && xto <= 6 && yto >= 2 && yto <= 4))){
+				|| (xto >= 2 && xto <= 4 && yto >= 4 && yto <= 6))){
 			newArrival = subtract(lastArrival, leaveSheep);
 		}
 		
-		boolean b = checkSheepCanMoveFrom2To(from, to, lastState);
-//		view.testButton4("!!!");
-		if(b){
-//		view.testButton4("&&&&");
+		if(checkSheepCanMoveFrom2To(from, to, lastState)){
 			newB.get(xto).set(yto, lastB.get(xfrom).get(yfrom));
 			newB.get(xfrom).set(yfrom, 0);
 			operations.add(new SetTurn(lastState.getPlayerIds().get(turnOfColor.getOppositeColor().ordinal())));
@@ -298,6 +295,7 @@ public class GameLogic {
 
 			if(getHowManySheepHaveBeenArrived(newArrival) == 9){
 				operations.add(new EndGame(lastState.getPlayerId(turnOfColor)));
+				//....
 			}
 		}
 		return operations;
@@ -486,10 +484,7 @@ public class GameLogic {
 		int yfrom = Integer.valueOf(from) % 10;
 		int xto = Integer.valueOf(to) / 10;
 		int yto = Integer.valueOf(to) % 10;
-		//x and y are both even or odd
-//		view.testButton4(xfrom + "#" + yfrom + "#" + xto + "#" + yto);
 		if((xfrom % 2 == 0 && yfrom % 2 == 0) || ((xfrom % 2) == 1 && (yfrom % 2) == 1)){
-//			view.testButton4("))))))");
 			if(checkAPositionIsEmpty(xfrom - 1, yfrom, lastState) && (xto == xfrom - 1) && (yto == yfrom)){
 				return true;
 			}else if(checkAPositionIsEmpty(xfrom + 1, yfrom, lastState) && (xto == xfrom + 1) && (yto == yfrom)){
@@ -497,7 +492,6 @@ public class GameLogic {
 			}else if(checkAPositionIsEmpty(xfrom, yfrom - 1, lastState) && (xto == xfrom) && (yto == yfrom - 1)){
 				return true;
 			}else if(checkAPositionIsEmpty(xfrom, yfrom + 1, lastState) && (xto == xfrom) && (yto == yfrom + 1)){
-//				view.testButton4("(((((");
 				return true;
 			}else if(checkAPositionIsEmpty(xfrom - 1, yfrom + 1, lastState) && (xto == xfrom - 1) && (yto == yfrom + 1)){
 				return true;
@@ -507,13 +501,10 @@ public class GameLogic {
 				return true;
 			}else if(checkAPositionIsEmpty(xfrom + 1, yfrom - 1, lastState) && (xto == xfrom + 1) && (yto == yfrom - 1)){
 				return true;
-			}else{
-//			view.testButton4("!!!!!!!");	
+			}else{	
 				return false;
 			}
 		}else{
-			//x is even and y is odd, or x is odd and y is even
-//			view.testButton4("odd & even");
 			if(checkAPositionIsEmpty(xfrom - 1, yfrom, lastState) && (xto == xfrom - 1) && (yto == yfrom)){
 				return true;
 			}else if(checkAPositionIsEmpty(xfrom + 1, yfrom, lastState) && (xto == xfrom + 1) && (yto == yfrom)){
@@ -523,7 +514,6 @@ public class GameLogic {
 			}else if(checkAPositionIsEmpty(xfrom, yfrom + 1, lastState) && (xto == xfrom) && (yto == yfrom + 1)){
 				return true;
 			}else{
-//			view.testButton4("odd & even" + "false");
 				return false;
 			}
 		}
@@ -695,22 +685,15 @@ public class GameLogic {
 		// 3) foxEatMove
 		// 4) doFoxEatMove
 		// 5) doSheepMove
-//	    view.testButton4("" + lastMove.size());
 		if(lastMove.contains(new Set(Is_Fox_Move, Yes))){
-			//view.testButton1();
 			return foxNormalMove(lastState, lastMove);
-			//return new ArrayList<Operation>();
 		}else if(lastMove.contains(new Delete(Is_Fox_Move))){
-//			view.testButton2();
 			return doFoxNormalMove(lastState);
 		}else if(lastMove.contains(new Set(Is_Fox_Eat, Yes))){
-//			view.testButton3();
 			return foxEatMove(lastState, lastMove);
 		}else if(lastMove.contains(new Delete(Is_Fox_Eat))){
-//			view.testButton4("11111");
 			return doFoxEatMove(lastState);
 		}else{
-//			view.testButton5();
 			return doSheepMove(lastState, lastMove);
 		}
 	}

@@ -12,6 +12,7 @@ import org.game_api.GameApi.VerifyMove;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -20,9 +21,9 @@ import com.google.gwt.user.client.ui.RootPanel;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class GameEntryPoint implements EntryPoint{
-	//ContainerConnector container;
 	GamePresenter gamePresenter;
-	IteratingPlayerContainer container;
+	ContainerConnector container;
+	//IteratingPlayerContainer container;
 	
 	@Override
 	public void onModuleLoad(){
@@ -37,33 +38,44 @@ public class GameEntryPoint implements EntryPoint{
 				gamePresenter.updateUI(updateUI);
 			}
 		};
-		//container = new ContainerConnector(game);
-		container = new IteratingPlayerContainer(game, 2);
+		container = new ContainerConnector(game);
+		//container = new IteratingPlayerContainer(game, 2);
 		GameGraphics gameGraphics = new GameGraphics();
 		gamePresenter = new GamePresenter(gameGraphics, container);
 
 		
-		final ListBox playerSelect = new ListBox();
-		playerSelect.addItem("FoxPlayer");
-		playerSelect.addItem("SheepPlayer");
-		playerSelect.addItem("Viewer");
-		playerSelect.addChangeHandler(new ChangeHandler(){
-			@Override
-			public void onChange(ChangeEvent event){
-				int selectedIndex = playerSelect.getSelectedIndex();
-				String playerId = selectedIndex == 2 ? GameApi.VIEWER_ID
-						: container.getPlayerIds().get(selectedIndex);
-				container.updateUi(playerId);
-			}
-		});
+//		final ListBox playerSelect = new ListBox();
+//		playerSelect.addItem("FoxPlayer");
+//		playerSelect.addItem("SheepPlayer");
+//		playerSelect.addItem("Viewer");
+//		playerSelect.addChangeHandler(new ChangeHandler(){
+//			@Override
+//			public void onChange(ChangeEvent event){
+//				int selectedIndex = playerSelect.getSelectedIndex();
+//				String playerId = selectedIndex == 2 ? GameApi.VIEWER_ID
+//						: container.getPlayerIds().get(selectedIndex);
+//				container.updateUi(playerId);
+//			}
+//		});
 		
 		
 		FlowPanel flowPanel = new FlowPanel();
+//		flowPanel.add(playerSelect);
 		flowPanel.add(gameGraphics);
-		flowPanel.add(playerSelect);
 		RootPanel.get("mainDiv").add(flowPanel);
 		
+//		RootPanel.get("mainDiv").add(gameGraphics);
+		
 		container.sendGameReady();
-		container.updateUi(container.getPlayerIds().get(0));		
-	}	
+//		container.updateUi(container.getPlayerIds().get(0));	
+		scaleGame();
+	}
+	
+	 private void scaleGame() {
+		    double scaleX = (double) Window.getClientWidth() / (double) gameSetting.width;
+		    double scaleY = (double) Window.getClientHeight() / (double) gameSetting.height;
+		    double scale = Math.max(scaleX, scaleY);
+		    scale = (scale > 1.0) ? 1.0 : scale;
+		    gameSetting.scale = scale;
+	 }
 }

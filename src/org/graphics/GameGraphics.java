@@ -32,8 +32,9 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-
+import com.google.gwt.user.client.ui.Label;
 import org.sounds.GameSounds;
+import com.google.gwt.user.client.Window;
 
 /**
  * Graphics for the game.
@@ -50,6 +51,9 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	
 	@UiField
 	AbsolutePanel abPanel;
+	
+	@UiField
+	HorizontalPanel displayResultArea;
 
 //	@UiField
 //	FlexTable animationArea;
@@ -63,6 +67,7 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	private State gameState;
 	private Audio pieceDown;
 	private boolean clicked = false;
+//	private final I18nMessages i18n;
 	
 	public GameGraphics(){
 		final AnimationDemo ai = GWT.create(AnimationDemo.class);
@@ -71,8 +76,9 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 		this.gameImageSupplier = new GameImageSupplier(gameImages);
 		GameGraphicsUiBinder uiBinder = GWT.create(GameGraphicsUiBinder.class);
 		initWidget(uiBinder.createAndBindUi(this));
+//		this.i18n = (I18nMessages) GWT.create(I18nMessages.class);
 		
-		abPanel.setPixelSize(400, 420);
+		abPanel.setPixelSize(400, 500);
 				
 //		animationImp(ai);
 		
@@ -199,7 +205,7 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	}
 	
 	private void enableClicks(){
-		//TODO
+		enableClicks = true;
 	}
 
 	@Override
@@ -223,7 +229,7 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 	@Override
 	public void chooseNextPositionForSheep(List<String> SelectedPosition,
 			ArrayList<ArrayList<Integer>> board) {
-		enableClicks = true;
+		enableClicks();
 	}
 
 	@Override
@@ -243,10 +249,12 @@ public class GameGraphics extends Composite implements GamePresenter.View {
 		}
 	}
 	
-	//Just for test
-	private native void test(String message) /*-{
-		$wnd.alert(message);
-	}-*/;
+	@Override
+	public void displayResult(String winner) {
+		Label gameResult = new Label(winner);	
+		gameResult.setStyleName("gameResultStyle");
+		displayResultArea.add(gameResult);	
+	}
 	
 /*	
 	private void animationImp(final AnimationDemo ai){

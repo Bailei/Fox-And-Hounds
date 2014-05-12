@@ -2,9 +2,7 @@ Welcome to game Halatafl
 ========
 **Game URL:** 
 
-- i18n: http://11.halatafl-smg-ft.appspot.com/halatafl.html
-- Mobile auto-scale: http://8b.halatafl-smg-ft.appspot.com/halatafl.html
-- Mobile: http://8.halatafl-smg-ft.appspot.com/halatafl.html
+- Final Version: http://14-dot-halatafl-smg-ft.appspot.com/
 
 Halatafl means "tail board", in Old Norse, and "tail" presumably refers to a fox's tail. As in Grettis saga, rävspelet (modern Swedish for "the Fox game") is still played with holes and pegs.
 
