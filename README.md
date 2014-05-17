@@ -11,11 +11,12 @@ There are two fox and 20 sheep. The objective is for the sheep to reach a certai
 Foxes can move in any direction along the game board`s grid lines. The goal is to catch 12 sheep and prevent them from filling the paddock area(dark green). To catch a sheep, jump over them like in checkers, one or more times. Foxes must jump if they can. 
  
 Sheep can move only sideways and forwards. The goal is to get 9 sheep into the paddock area, avoid the mean foxes! 
+
 **Play against the Computer mode:**
-http://halatafl-smg-ft.appspot.com/?PlayAgainstTheComputer
+- http://halatafl-smg-ft.appspot.com/?PlayAgainstTheComputer
 
 **Pass and Play mode:**
-http://halatafl-smg-ft.appspot.com/?PassAndPlay
+- http://halatafl-smg-ft.appspot.com/?PassAndPlay
 
 **Game URL used in Emulator/Container:**
 - Final Version: http://14-dot-halatafl-smg-ft.appspot.com/
